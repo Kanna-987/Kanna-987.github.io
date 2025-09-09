@@ -1,708 +1,1173 @@
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-        <!-- PWA Meta Tags -->
-        <meta name="theme-color" content="#111827" />
-        <link rel="manifest" href="manifest.json">
-        <link rel="apple-touch-icon" href="https://placehold.co/192x192/6366f1/white?text=UniHub">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#111827" />
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/6366f1/white?text=UniHub">
 
-        <title>UniHub Dashboard</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-            rel="stylesheet">
-        <style>
-            body {
-                font-family: 'Inter', sans-serif;
-                -webkit-tap-highlight-color: transparent;
-            }
+    <title>UniHub Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-            /* --- Custom UI Styles --- */
-            .switch {
-                position: relative;
-                display: inline-block;
-                width: 52px;
-                height: 32px;
-            }
+        /* --- Custom UI Styles --- */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 32px;
+        }
 
-            .switch input {
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #6366F1;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .page,
+        .modal {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
                 opacity: 0;
-                width: 0;
-                height: 0;
+                transform: translateY(10px);
             }
 
-            .slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #4b5563;
-                transition: .4s;
-                border-radius: 34px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            .slider:before {
-                position: absolute;
-                content: "";
-                height: 24px;
-                width: 24px;
-                left: 4px;
-                bottom: 4px;
-                background-color: white;
-                transition: .4s;
-                border-radius: 50%;
-            }
+        /* Style for the active day tab */
+        .day-tab.active {
+            background-color: #6366F1;
+            color: #FFFFFF;
+        }
 
-            input:checked+.slider {
-                background-color: #6366F1;
-            }
+        /* Style for selected day in modal */
+        .day-selector.selected {
+            background-color: #4F46E5;
+            border-color: #6366F1;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
 
-            input:checked+.slider:before {
-                transform: translateX(20px);
-            }
+<body class="bg-gray-900 text-gray-50">
 
-            .page,
-            .modal {
-                animation: fadeIn 0.3s ease-in-out;
-            }
+    <div class="container mx-auto max-w-md p-4 min-h-screen">
 
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
+        <header class="flex items-center space-x-4 p-4">
+            <div class="flex-shrink-0">
+                <img src="https://placehold.co/64x64/374151/white?text=U" class="rounded-full" alt="User Avatar">
+            </div>
+            <div>
+                <h1 id="user-name" class="text-2xl font-bold text-white">Student Name</h1>
+                <p id="user-college" class="text-md text-gray-400 font-medium">Your College</p>
+                <p class="text-md text-gray-400 font-medium">CGPA: <span id="user-gpa"
+                        class="font-bold text-indigo-400">N/A</span></p>
+            </div>
+        </header>
 
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
+        <section class="my-6 bg-gray-800 rounded-xl p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <svg class="w-6 h-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                <span class="font-semibold text-lg text-gray-200">Notifications</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="notification-toggle-input"><span
+                    class="slider"></span></label>
+        </section>
 
-            /* Style for the active day tab */
-            .day-tab.active {
-                background-color: #6366F1;
-                color: #FFFFFF;
-            }
-
-            /* Style for selected day in modal */
-            .day-selector.selected {
-                background-color: #4F46E5;
-                border-color: #6366F1;
-                color: #FFFFFF;
-            }
-        </style>
-    </head>
-
-    <body class="bg-gray-900 text-gray-50">
-
-        <div class="container mx-auto max-w-md p-4 min-h-screen">
-
-            <header class="flex items-center space-x-4 p-4">
-                <div class="flex-shrink-0">
-                    <img src="https://placehold.co/64x64/374151/white?text=U" class="rounded-full" alt="User Avatar">
-                </div>
-                <div>
-                    <h1 id="user-name" class="text-2xl font-bold text-white">Student Name</h1>
-                    <p id="user-college" class="text-md text-gray-400 font-medium">Your College</p>
-                    <p class="text-md text-gray-400 font-medium">CGPA: <span id="user-gpa"
-                            class="font-bold text-indigo-400">N/A</span></p>
-                </div>
-            </header>
-
-            <section class="my-6 bg-gray-800 rounded-xl p-4 flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-6 h-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                    <span class="font-semibold text-lg text-gray-200">Notifications</span>
-                </div>
-                <label class="switch"><input type="checkbox" id="notification-toggle-input"><span
-                        class="slider"></span></label>
-            </section>
-
-            <main id="page-container">
-                <!-- Page 1: Dashboard -->
-                <div id="dashboard-page" class="page">
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Dashboard Cards -->
-                        <div onclick="showPage('timetable-page')"
-                            class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
-                            <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                            </svg>
-                            <p class="font-semibold text-base text-gray-200">Class Timetable</p>
+        <main id="page-container">
+            <!-- Page 1: Dashboard -->
+            <div id="dashboard-page" class="page">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <!-- Next Assignment Card -->
+                    <div class="bg-gray-800 p-5 rounded-2xl text-center space-y-1">
+                        <p class="text-sm font-semibold text-gray-400">Next Assignment Due</p>
+                        <div id="next-assignment-container">
+                            <!-- Content will be generated by JavaScript -->
+                            <p class="text-gray-500 pt-2">You're all caught up!</p>
                         </div>
-                        <div onclick="showPage('exams-page')"
-                            class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
-                            <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                            </svg>
-                            <p class="font-semibold text-base text-gray-200">Exam Schedule</p>
-                        </div>
-                        <div onclick="showPage('assignments-page')"
-                            class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
-                            <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
-                            </svg>
-                            <p class="font-semibold text-base text-gray-200">Assignments</p>
-                        </div>
-
-
-
-                        <div onclick="showPage('attendance-page')"
-                            class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-colors hover:bg-gray-700 cursor-pointer">
-                            <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                            </svg>
-                            <p class="font-semibold text-base text-gray-200">Attendance Tracker</p>
-                        </div>
-
-
-
-
-                        <div onclick="showPage('gpa-page')"
-                            class="col-span-2 bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
-                            <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm3-6h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm3-6h.008v.008H14.25v-.008zm0 3h.008v.008H14.25v-.008zm0 3h.008v.008H14.25v-.008zM4.5 21V5.625c0-1.036.84-1.875 1.875-1.875h11.25c1.035 0 1.875.84 1.875 1.875V21M4.5 21h15M4.5 21V8.25M19.5 21V8.25" />
-                            </svg>
-                            <p class="font-semibold text-base text-gray-200">GPA Calculator</p>
+                    </div>
+                    <!-- Next Exam Card -->
+                    <div class="bg-gray-800 p-5 rounded-2xl text-center space-y-1">
+                        <p class="text-sm font-semibold text-gray-400">Next Exam</p>
+                        <div id="next-exam-container">
+                            <!-- Content will be generated by JavaScript -->
+                            <p class="text-gray-500 pt-2">No exams scheduled.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Page 2: Class Timetable -->
-                <div id="timetable-page" class="page" style="display: none;">
-                    <div class="flex justify-between items-center mb-4">
-                        <button onclick="showPage('dashboard-page')"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800"><svg
-                                class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg></button>
-                        <h2 class="text-2xl font-bold text-white">Class Timetable</h2>
-                        <button id="add-class-btn"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800"><svg
-                                class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg></button>
-                    </div>
-
-                    <!-- Day of the Week Tabs -->
-                    <div id="day-tabs-container" class="flex justify-between space-x-1 bg-gray-800 p-1 rounded-full mb-6">
-                        <!-- Tabs will be generated by JS -->
-                    </div>
-
-                    <!-- Classes for the selected day -->
-                    <div id="timetable-day-view" class="space-y-4">
-                        <!-- Empty state -->
-                        <div id="empty-day-view"
-                            class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex-col items-center justify-center hidden">
-                            <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.023.55m0 0l-4.66 2.51m5.683-4.471L5.625 6.275a2.25 2.25 0 012.134 0l4.242 2.284m5.683 4.471l-4.242-2.284a2.25 2.25 0 00-2.134 0l-4.242 2.284m12.296 0A2.25 2.25 0 0121.75 12v-2.25a2.25 2.25 0 01-2.134-1.902l-4.242-2.284a2.25 2.25 0 00-2.134 0L5.625 7.848a2.25 2.25 0 00-2.134 1.902V12a2.25 2.25 0 002.134 1.902l4.242 2.284a2.25 2.25 0 012.134 0l4.242-2.284" />
-                            </svg>
-                            <h3 id="empty-day-title" class="mt-4 text-lg font-semibold text-gray-300">No classes for this
-                                day</h3>
-                            <p class="mt-1 text-sm text-gray-500">Add a class or select another day.</p>
-                        </div>
-                        <!-- Classes list -->   
-                        <div id="classes-list-view" class="space-y-4">
-                            <!-- Class cards will be dynamically inserted here -->
-                        </div>
-                    </div>
-                </div>
-
-
-                
-
-                <!-- Other hidden pages -->
-                <div id="exams-page" class="page" style="display: none;">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="showPage('dashboard-page')"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h2 class="text-2xl font-bold text-white">Exam Schedule</h2>
-                        <button id="add-exam-btn"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Exam Lists Container -->
-                    <div class="space-y-6">
-                        <!-- Upcoming Exams -->
-                        <div id="upcoming-exams-container">
-                            <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Upcoming
-                            </h3>
-                            <div id="upcoming-exams-list" class="space-y-3">
-                                <!-- Upcoming exams will be injected here -->
-                            </div>
-                        </div>
-
-                        <!-- Past Exams -->
-                        <div id="past-exams-container">
-                            <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Completed
-                            </h3>
-                            <div id="past-exams-list" class="space-y-3">
-                                <!-- Past exams will be injected here -->
-                            </div>
-                        </div>
-
-                        <!-- Empty State -->
-                        <div id="empty-exams-view"
-                            class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center"
-                            style="display: none;">
-                            <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                            </svg>
-                            <h3 class="mt-4 text-lg font-semibold text-gray-300">No exams scheduled</h3>
-                            <p class="mt-1 text-sm text-gray-500">Tap the '+' button above to add an exam.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Exam Modal -->
-                <div id="add-exam-modal"
-                    class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
-                    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4">
-                        <h3 class="text-xl font-bold text-white">Add New Exam</h3>
-                        <form id="add-exam-form" class="space-y-4">
-                            <input type="text" id="exam-name" placeholder="Exam Name (e.g., Physics Final)" required
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                            <input type="text" id="exam-location" placeholder="Location / Room (e.g., Hall 14)"
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="exam-date" class="text-sm font-medium text-gray-400">Date</label>
-                                    <input type="date" id="exam-date" required
-                                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                                </div>
-                                <div>
-                                    <label for="exam-time" class="text-sm font-medium text-gray-400">Start Time</label>
-                                    <input type="time" id="exam-time" required
-                                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                                </div>
-                            </div>
-
-                            <div class="flex items-center space-x-2 pt-2">
-                                <button type="button" id="cancel-exam-btn"
-                                    class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
-                                <button type="submit"
-                                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
-                                    Exam</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div id="assignments-page" class="page" style="display: none;">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="showPage('dashboard-page')"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h2 class="text-2xl font-bold text-white">Assignments</h2>
-                        <button id="add-assignment-btn"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Assignments Lists Container -->
-                    <div class="space-y-6">
-                        <!-- Due Soon -->
-                        <div id="due-soon-container">
-                            <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">To Do</h3>
-                            <div id="due-soon-list" class="space-y-3">
-                                <!-- Assignments to be done will be injected here -->
-                            </div>
-                        </div>
-
-                        <!-- Completed -->
-                        <div id="completed-container">
-                            <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Completed
-                            </h3>
-                            <div id="completed-list" class="space-y-3">
-                                <!-- Completed assignments will be injected here -->
-                            </div>
-                        </div>
-
-                        <!-- Empty State -->
-                        <div id="empty-assignments-view"
-                            class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center"
-                            style="display: none;">
-                            <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
-                            </svg>
-                            <h3 class="mt-4 text-lg font-semibold text-gray-300">No assignments here</h3>
-                            <p class="mt-1 text-sm text-gray-500">Tap the '+' button above to add an assignment.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add/Edit Assignment Modal -->
-                <div id="add-assignment-modal"
-                    class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
-                    <div id="add-assignment-modal-content"
-                        class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4 transform transition-all opacity-0 -translate-y-4">
-                        <h3 id="assignment-modal-title" class="text-xl font-bold text-white text-center">Add New Assignment
-                        </h3>
-                        <form id="add-assignment-form" class="space-y-4">
-                            <input type="hidden" id="assignment-edit-id">
-                            <input type="text" id="assignment-name" placeholder="Assignment Name (e.g., Lab Report)"
-                                required
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                            <input type="text" id="assignment-subject" placeholder="Subject / Course (e.g., Physics)"
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="assignment-due-date" class="text-sm font-medium text-gray-400">Due
-                                        Date</label>
-                                    <input type="date" id="assignment-due-date" required
-                                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                                </div>
-                                <div>
-                                    <label for="assignment-due-time" class="text-sm font-medium text-gray-400">Due
-                                        Time</label>
-                                    <input type="time" id="assignment-due-time" required
-                                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                                </div>
-                            </div>
-
-                            <div class="flex items-center space-x-3 pt-2">
-                                <button type="button" id="cancel-assignment-btn"
-                                    class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
-                                <button type="submit"
-                                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
-                                    Assignment</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-
-
-
-
-
-
-                <!-- Page 3: Attendance Tracker (Hidden by default) -->
-                <div id="attendance-page" class="page" style="display: none;">
-                    <!-- Header for the Attendance Page -->
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-white">Attendance Tracker</h2>
-                        <button onclick="showPage('dashboard-page')"
-                            class="text-indigo-400 hover:text-indigo-300 flex items-center space-x-2">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                            </svg>
-                            <span>Back</span>
-                        </button>
-                    </div>
-
-                    <!-- Coming Soon Message -->
-                    <div
-                        class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center">
-                        <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Dashboard Cards -->
+                    <div onclick="showPage('timetable-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
-                        <h3 class="mt-4 text-xl font-semibold text-gray-300">Feature Coming Soon</h3>
-                        <p class="mt-1 text-base text-gray-500">The Attendance Tracker is currently under development.</p>
+                        <p class="font-semibold text-base text-gray-200">Class Timetable</p>
+                    </div>
+                    <div onclick="showPage('exams-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">Exam Schedule</p>
+                    </div>
+                    <div onclick="showPage('assignments-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">Assignments</p>
+                    </div>
+
+
+
+                    <div onclick="showPage('attendance-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-colors hover:bg-gray-700 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">Attendance Tracker</p>
+                    </div>
+
+
+
+                    <!-- Card 6: Resource Hub (NEW) -->
+                    <div onclick="showPage('resource-hub-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-colors hover:bg-gray-700 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">Resource Hub</p>
+                    </div>
+
+
+                    <!-- Card 7: Task Manager (NEW) -->
+                    <div onclick="showPage('tasks-page')"
+                        class="bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-colors hover:bg-gray-700 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">Task Manager</p>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+                    <div onclick="showPage('gpa-page')"
+                        class="col-span-2 bg-gray-800 p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition-transform hover:scale-105 cursor-pointer">
+                        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm0 3h.008v.008H8.25v-.008zm3-6h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm0 3h.008v.008H11.25v-.008zm3-6h.008v.008H14.25v-.008zm0 3h.008v.008H14.25v-.008zm0 3h.008v.008H14.25v-.008zM4.5 21V5.625c0-1.036.84-1.875 1.875-1.875h11.25c1.035 0 1.875.84 1.875 1.875V21M4.5 21h15M4.5 21V8.25M19.5 21V8.25" />
+                        </svg>
+                        <p class="font-semibold text-base text-gray-200">GPA Calculator</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Page 2: Class Timetable -->
 
 
+            <div id="timetable-page" class="page" style="display: none;">
+            </div>
 
 
+            <div id="add-class-modal"
+                class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+                <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4">
+                    <h3 class="text-xl font-bold text-white">Add New Class</h3>
+                    <form id="add-class-form" class="space-y-4">
+                        <input type="hidden" id="selected-day" required>
 
-
-                <div id="gpa-page" class="page" style="display: none;">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="showPage('dashboard-page')"
-                            class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <h2 class="text-2xl font-bold text-white">GPA Calculator</h2>
-                        <button id="clear-gpa-btn"
-                            class="text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-gray-800">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- CGPA Display Card -->
-                    <div class="bg-gray-800 p-6 rounded-2xl mb-6 text-center">
-                        <p class="text-sm font-medium text-gray-400">Your Cumulative GPA</p>
-                        <h3 id="cgpa-display" class="text-5xl font-extrabold text-indigo-400 mt-2">0.00</h3>
-                    </div>
-
-                    <!-- Add Course Form (with corrected IDs) -->
-                    <form id="gpa-add-course-form" class="bg-gray-800 p-4 rounded-2xl space-y-4 mb-6">
-                        <h4 class="text-lg font-bold text-white text-center">Add a New Course</h4>
-                        <input type="text" id="gpa-course-name" placeholder="Course Name (e.g., Data Structures)" required
+                        <input type="text" id="subject-name" placeholder="Subject Name" required
                             class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+                        <input type="text" id="professor-name" placeholder="Professor (Optional)"
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+                        <input type="text" id="room-location" placeholder="Room / Location (Optional)"
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+
                         <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="gpa-course-credits" placeholder="Credits" required min="0" step="0.5"
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                            <input type="number" id="gpa-course-grade" placeholder="Grade (0-10)" required min="0" max="10"
-                                step="0.1"
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+                            <div>
+                                <label for="start-time" class="text-sm font-medium text-gray-400">Start Time</label>
+                                <input type="time" id="start-time" required
+                                    class="mt-1 w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                            </div>
+                            <div>
+                                <label for="end-time" class="text-sm font-medium text-gray-400">End Time</label>
+                                <input type="time" id="end-time" required
+                                    class="mt-1 w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                            </div>
                         </div>
-                        <button type="submit"
-                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Add
-                            Course</button>
+
+                        <div>
+                            <label class="text-sm font-medium text-gray-400">Day of the Week</label>
+                            <div id="form-day-selector" class="grid grid-cols-7 gap-2 mt-2">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3 pt-2">
+                            <button type="button" id="cancel-class-btn"
+                                class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
+                            <button type="submit"
+                                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
+                                Class</button>
+                        </div>
                     </form>
-
-                    <!-- Course List -->
-                    <div id="courses-list-container" class="space-y-3">
-                        <!-- Empty state -->
-                        <div id="empty-gpa-view" class="text-center p-6 border-2 border-dashed border-gray-700 rounded-2xl">
-                            <p class="text-gray-500">Your added courses will appear here.</p>
-                        </div>
-                        <!-- Course items will be injected here -->
-                    </div>
                 </div>
+            </div>
 
-            </main>
+
+
+
+
+
+
+
+
+
+
+
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="showPage('dashboard-page')"
+                    class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800"><svg
+                        class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg></button>
+                <h2 class="text-2xl font-bold text-white">Class Timetable</h2>
+                <button id="add-class-btn"
+                    class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800"><svg
+                        class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg></button>
+            </div>
+
+            <!-- Day of the Week Tabs -->
+
+            <!-- === NEXT CLASS TIMER (NEW) === -->
+            <div id="next-class-container"
+                class="bg-gray-800 p-4 rounded-xl mb-6 border-l-4 border-indigo-500 text-center" style="display: none;">
+                <p class="text-sm font-medium text-gray-400">Next Class Starting In</p>
+                <div id="next-class-countdown" class="text-3xl font-bold text-white my-1">--:--:--</div>
+                <p id="next-class-subject" class="font-semibold text-indigo-300"></p>
+            </div>
+
+
+            <div id="day-tabs-container" class="flex justify-between space-x-1 bg-gray-800 p-1 rounded-full mb-6">
+                <!-- Tabs will be generated by JS -->
+            </div>
+
+            <!-- Classes for the selected day -->
+            <div id="timetable-day-view" class="space-y-4">
+                <!-- Empty state -->
+                <div id="empty-day-view"
+                    class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex-col items-center justify-center hidden">
+                    <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.023.55m0 0l-4.66 2.51m5.683-4.471L5.625 6.275a2.25 2.25 0 012.134 0l4.242 2.284m5.683 4.471l-4.242-2.284a2.25 2.25 0 00-2.134 0l-4.242 2.284m12.296 0A2.25 2.25 0 0121.75 12v-2.25a2.25 2.25 0 01-2.134-1.902l-4.242-2.284a2.25 2.25 0 00-2.134 0L5.625 7.848a2.25 2.25 0 00-2.134 1.902V12a2.25 2.25 0 002.134 1.902l4.242 2.284a2.25 2.25 0 012.134 0l4.242-2.284" />
+                    </svg>
+                    <h3 id="empty-day-title" class="mt-4 text-lg font-semibold text-gray-300">No classes for this
+                        day</h3>
+                    <p class="mt-1 text-sm text-gray-500">Add a class or select another day.</p>
+                </div>
+                <!-- Classes list -->
+                <div id="classes-list-view" class="space-y-4">
+                    <!-- Class cards will be dynamically inserted here -->
+                </div>
+            </div>
+    </div>
+
+
+
+
+    <!-- Other hidden pages -->
+    <div id="exams-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">Exam Schedule</h2>
+            <button id="add-exam-btn" class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
         </div>
 
-        <!-- Add Class Modal (Redesigned) -->
-        <div id="add-class-modal"
-            class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
-            <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4">
-                <h3 class="text-xl font-bold text-white">Add New Class</h3>
-                <form id="add-class-form" class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-400 mb-2 block">Day of the Week</label>
-                        <div id="form-day-selector" class="grid grid-cols-4 gap-2">
-                            <!-- Day selectors will be generated by JS -->
-                        </div>
-                        <input type="hidden" id="selected-day" required>
-                    </div>
-                    <input type="text" id="subject-name" placeholder="Subject Name" required
-                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                    <input type="text" id="professor-name" placeholder="Professor Name (Optional)"
-                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                    <input type="text" id="room-location" placeholder="Room / Link (Optional)"
-                        class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="start-time" class="text-sm font-medium text-gray-400">Start Time</label>
-                            <input type="time" id="start-time" required
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                        </div>
-                        <div>
-                            <label for="end-time" class="text-sm font-medium text-gray-400">End Time</label>
-                            <input type="time" id="end-time" required
-                                class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2 pt-2">
-                        <button type="button" id="cancel-class-btn"
-                            class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
-                        <button type="submit"
-                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
-                            Class</button>
-                    </div>
-                </form>
+        <!-- Exam Lists Container -->
+        <div class="space-y-6">
+            <!-- Upcoming Exams -->
+            <div id="upcoming-exams-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Upcoming
+                </h3>
+                <div id="upcoming-exams-list" class="space-y-3">
+                    <!-- Upcoming exams will be injected here -->
+                </div>
+            </div>
+
+            <!-- Past Exams -->
+            <div id="past-exams-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Completed
+                </h3>
+                <div id="past-exams-list" class="space-y-3">
+                    <!-- Past exams will be injected here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-exams-view"
+                class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center"
+                style="display: none;">
+                <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <h3 class="mt-4 text-lg font-semibold text-gray-300">No exams scheduled</h3>
+                <p class="mt-1 text-sm text-gray-500">Tap the '+' button above to add an exam.</p>
             </div>
         </div>
+    </div>
 
-        <script>
-            // --- App Initialization ---
-            document.addEventListener('DOMContentLoaded', () => {
-                initializeApp();
+    <!-- Add Exam Modal -->
+    <div id="add-exam-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <h3 class="text-xl font-bold text-white">Add New Exam</h3>
+            <form id="add-exam-form" class="space-y-4">
+                <input type="text" id="exam-name" placeholder="Exam Name (e.g., Physics Final)" required
+                    class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+                <input type="text" id="exam-location" placeholder="Location / Room (e.g., Hall 14)"
+                    class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="exam-date" class="text-sm font-medium text-gray-400">Date</label>
+                        <input type="date" id="exam-date" required
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                    </div>
+                    <div>
+                        <label for="exam-time" class="text-sm font-medium text-gray-400">Start Time</label>
+                        <input type="time" id="exam-time" required
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-2">
+                    <button type="button" id="cancel-exam-btn"
+                        class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
+                        Exam</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <div id="assignments-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">Assignments</h2>
+            <button id="add-assignment-btn"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Assignments Lists Container -->
+        <div class="space-y-6">
+            <!-- Due Soon -->
+            <div id="due-soon-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">To Do</h3>
+                <div id="due-soon-list" class="space-y-3">
+                    <!-- Assignments to be done will be injected here -->
+                </div>
+            </div>
+
+            <!-- Completed -->
+            <div id="completed-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Completed
+                </h3>
+                <div id="completed-list" class="space-y-3">
+                    <!-- Completed assignments will be injected here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-assignments-view"
+                class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center"
+                style="display: none;">
+                <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                </svg>
+                <h3 class="mt-4 text-lg font-semibold text-gray-300">No assignments here</h3>
+                <p class="mt-1 text-sm text-gray-500">Tap the '+' button above to add an assignment.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Assignment Modal -->
+    <div id="add-assignment-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div id="add-assignment-modal-content"
+            class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4 transform transition-all opacity-0 -translate-y-4">
+            <h3 id="assignment-modal-title" class="text-xl font-bold text-white text-center">Add New Assignment
+            </h3>
+            <form id="add-assignment-form" class="space-y-4">
+                <input type="hidden" id="assignment-edit-id">
+                <input type="text" id="assignment-name" placeholder="Assignment Name (e.g., Lab Report)" required
+                    class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+                <input type="text" id="assignment-subject" placeholder="Subject / Course (e.g., Physics)"
+                    class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="assignment-due-date" class="text-sm font-medium text-gray-400">Due
+                            Date</label>
+                        <input type="date" id="assignment-due-date" required
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                    </div>
+                    <div>
+                        <label for="assignment-due-time" class="text-sm font-medium text-gray-400">Due
+                            Time</label>
+                        <input type="time" id="assignment-due-time" required
+                            class="w-full bg-gray-700 text-white rounded-lg p-3 border-2 border-gray-600 focus:border-indigo-500 focus:outline-none appearance-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 pt-2">
+                    <button type="button" id="cancel-assignment-btn"
+                        class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">Save
+                        Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <!-- Page 3: Attendance Tracker (Hidden by default) -->
+    <div id="attendance-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">Attendance Tracker</h2>
+            <button id="add-subject-btn"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- This block is shown ONLY when there are no subjects -->
+        <div id="empty-attendance-view"
+            class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex-col items-center justify-center"
+            style="display: none;">
+            <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="mt-4 text-lg font-semibold text-gray-300">No subjects to track</h3>
+            <p class="mt-1 text-sm text-gray-500">Tap the '+' button to add your first subject.</p>
+        </div>
+
+        <!-- This is where the list of subjects will be displayed -->
+        <div id="subjects-list" class="space-y-4">
+            <!-- Subject cards will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- === MODALS for Attendance === -->
+    <!-- Add/Edit Subject Modal -->
+    <div id="add-subject-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div id="add-subject-modal-content"
+            class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700 opacity-0 -translate-y-4 transition-all duration-300">
+            <h3 id="subject-modal-title" class="text-xl font-bold text-white mb-4">Add New Subject</h3>
+            <form id="add-subject-form" class="space-y-4">
+                <input type="hidden" id="subject-edit-id">
+                <div>
+                    <label for="subject-name" class="block text-sm font-medium text-gray-400">Subject
+                        Name</label>
+                    <input type="text" id="subject-name" required
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <!-- Initial setup fields for new subjects only -->
+                <div id="initial-setup-fields" class="space-y-4">
+                    <div>
+                        <label for="initial-attended-classes" class="block text-sm font-medium text-gray-400">Classes
+                            Attended (So Far)</label>
+                        <input type="number" id="initial-attended-classes" value="0" min="0"
+                            class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="initial-total-classes" class="block text-sm font-medium text-gray-400">Total
+                            Classes Held (So Far)</label>
+                        <input type="number" id="initial-total-classes" value="0" min="0"
+                            class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" id="cancel-subject-btn"
+                        class="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Save
+                        Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Detail Modal -->
+    <div id="attendance-detail-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div id="attendance-detail-modal-content"
+            class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700 space-y-4 opacity-0 -translate-y-4 transition-all duration-300">
+            <!-- Content generated by JavaScript -->
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- resource hub-->
+
+    <!-- Page: Resource Hub (Hidden by default) -->
+    <div id="resource-hub-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">Resource Hub</h2>
+            <button id="add-resource-btn"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-resources-view"
+            class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex-col items-center justify-center"
+            style="display: none;">
+            <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+            <h3 class="mt-4 text-lg font-semibold text-gray-300">No resources saved</h3>
+            <p class="mt-1 text-sm text-gray-500">Tap the '+' button to add your first resource.</p>
+        </div>
+
+        <!-- Container for resources grouped by class -->
+        <div id="resources-by-class-container" class="space-y-6">
+            <!-- Content generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Resource Modal -->
+    <div id="add-resource-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700 space-y-4">
+            <h3 id="add-resource-modal-title" class="text-xl font-bold text-white">Add New Resource</h3>
+            <form id="add-resource-form" class="space-y-4">
+                <input type="hidden" id="resource-edit-id">
+                <div>
+                    <label for="resource-title" class="block text-sm font-medium text-gray-400">Title</label>
+                    <input type="text" id="resource-title" placeholder="e.g., Physics Notes PDF" required
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="resource-class" class="block text-sm font-medium text-gray-400">Associated
+                        Class</label>
+                    <select id="resource-class"
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                        <!-- Class options will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="resource-link" class="block text-sm font-medium text-gray-400">Link
+                        (Optional)</label>
+                    <input type="url" id="resource-link" placeholder="https://..."
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="resource-notes" class="block text-sm font-medium text-gray-400">Notes
+                        (Optional)</label>
+                    <textarea id="resource-notes" rows="3" placeholder="Add any important notes here..."
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" id="cancel-resource-btn"
+                        class="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Save
+                        Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal for Deleting Resources -->
+    <div id="delete-resource-confirm-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center border border-gray-700">
+            <h3 class="text-lg font-bold text-white">Delete Resource?</h3>
+            <p class="text-gray-400 text-sm my-4">Are you sure you want to delete this resource? This action
+                cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="cancel-delete-resource-btn"
+                    class="px-6 py-2 rounded-lg text-gray-300 hover:bg-gray-700">Cancel</button>
+                <button id="confirm-delete-resource-btn"
+                    class="px-6 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700">Delete</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Page: Task Manager (Hidden by default) -->
+    <div id="tasks-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">Task Manager</h2>
+            <button id="add-task-btn" class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Tasks Lists Container -->
+        <div class="space-y-6">
+            <!-- To Do -->
+            <div id="todo-tasks-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">To-Do</h3>
+                <div id="todo-tasks-list" class="space-y-3">
+                    <!-- To-do tasks will be injected here -->
+                </div>
+            </div>
+
+            <!-- Completed -->
+            <div id="completed-tasks-container">
+                <h3 class="text-lg font-semibold text-gray-300 mb-3 border-b-2 border-gray-700 pb-2">Completed
+                </h3>
+                <div id="completed-tasks-list" class="space-y-3">
+                    <!-- Completed tasks will be injected here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-tasks-view"
+                class="text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center"
+                style="display: none;">
+                <svg class="w-16 h-16 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-4 text-lg font-semibold text-gray-300">All clear!</h3>
+                <p class="mt-1 text-sm text-gray-500">Tap the '+' button to add a task.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="add-task-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
+            <h3 class="text-xl font-bold text-white mb-4">Add New Task</h3>
+            <form id="add-task-form">
+                <input type="text" id="task-name" placeholder="e.g., Read Chapter 5" required
+                    class="w-full bg-gray-700 border-gray-600 rounded-lg p-3 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancel-task-btn"
+                        class="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Add
+                        Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- gpa page html -->
+
+
+    <!-- Page: GPA Calculator (Hidden by default) -->
+    <div id="gpa-page" class="page" style="display: none;">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showPage('dashboard-page')"
+                class="text-indigo-400 hover:text-indigo-300 p-2 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white">CGPA Predictor</h2>
+            <div class="w-8"></div> <!-- Spacer -->
+        </div>
+
+        <!-- Main GPA Content -->
+        <div class="space-y-6">
+            <!-- Overall CGPA Display -->
+            <div class="bg-gray-800 p-6 rounded-2xl text-center">
+                <p class="text-sm font-medium text-gray-400">Your Overall CGPA</p>
+                <h3 id="cgpa-display" class="text-5xl font-extrabold text-indigo-400 mt-2">0.00</h3>
+            </div>
+
+            <!-- Semester Accordions will be generated here -->
+            <div id="semesters-container" class="space-y-3">
+                <!-- Example Semester (for structure) -->
+                <!-- 
+            <div class="bg-gray-800 rounded-xl">
+                <button class="w-full flex justify-between items-center p-4">
+                    <span class="font-bold text-white">Semester 1</span>
+                    <span class="font-semibold text-indigo-400">SGPA: 8.50</span>
+                </button>
+                <div class="p-4 border-t border-gray-700">
+                    // Course list for this semester
+                </div>
+            </div>
+            -->
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-4">
+                <button id="add-semester-btn"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                    Add New Semester
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Semester Modal -->
+    <div id="add-semester-modal"
+        class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-lg border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="semester-modal-title" class="text-xl font-bold text-white">Add New Semester</h3>
+                <button id="cancel-semester-btn" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <form id="add-semester-form">
+                <input type="hidden" id="semester-edit-id">
+                <div class="mb-4">
+                    <label for="semester-name" class="block text-sm font-medium text-gray-400">Semester
+                        Name</label>
+                    <input type="text" id="semester-name" placeholder="e.g., Semester 1, Fall 2024" required
+                        class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white">
+                </div>
+                <div id="courses-container" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                    <!-- Course input rows will be generated by JS -->
+                </div>
+                <div class="mt-4">
+                    <button type="button" id="add-course-row-btn" class="text-indigo-400 font-semibold text-sm">+ Add
+                        Course</button>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="delete-semester-btn"
+                        class="px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700"
+                        style="display: none;">Delete</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Save
+                        Semester</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+        // --- App Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+
+        // --- Constants and State ---
+        const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const DAY_FULL_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const ACCENT_COLORS = ['#F43F5E', '#3B82F6', '#22C55E', '#EAB308', '#8B5CF6', '#F97316'];
+        let currentDay = DAY_FULL_NAMES[new Date().getDay()]; // e.g., 'Monday'
+
+        // --- DOM Elements ---
+        const pageContainer = document.getElementById('page-container');
+        const addClassModal = document.getElementById('add-class-modal');
+        const addClassBtn = document.getElementById('add-class-btn');
+        const cancelClassBtn = document.getElementById('cancel-class-btn');
+        const addClassForm = document.getElementById('add-class-form');
+        const dayTabsContainer = document.getElementById('day-tabs-container');
+        const formDaySelector = document.getElementById('form-day-selector');
+        const selectedDayInput = document.getElementById('selected-day');
+
+        // --- Core Functions ---
+        function initializeApp() {
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('SW reg failed: ', err)));
+            }
+            setupUI();
+            setupEventListeners();
+            showPage('dashboard-page');
+        }
+
+        function setupUI() {
+            // Create day tabs for the timetable page
+            DAY_FULL_NAMES.forEach(day => {
+                const dayAbbr = day.substring(0, 3);
+                dayTabsContainer.innerHTML += `<button onclick="selectDay('${day}')" id="tab-${day}" class="day-tab w-full text-center font-bold py-2 px-3 rounded-full transition-colors text-sm">${dayAbbr}</button>`;
             });
 
-            // --- Constants and State ---
-            const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const DAY_FULL_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const ACCENT_COLORS = ['#F43F5E', '#3B82F6', '#22C55E', '#EAB308', '#8B5CF6', '#F97316'];
-            let currentDay = DAY_FULL_NAMES[new Date().getDay()]; // e.g., 'Monday'
+            // Create day selector buttons for the modal form
+            DAY_FULL_NAMES.forEach(day => {
+                const dayAbbr = day.substring(0, 3);
+                formDaySelector.innerHTML += `<button type="button" data-day="${day}" class="day-selector border-2 border-gray-600 text-gray-300 rounded-lg p-2 font-semibold transition-colors">${dayAbbr}</button>`;
+            });
+        }
 
-            // --- DOM Elements ---
-            const pageContainer = document.getElementById('page-container');
-            const addClassModal = document.getElementById('add-class-modal');
-            const addClassBtn = document.getElementById('add-class-btn');
-            const cancelClassBtn = document.getElementById('cancel-class-btn');
-            const addClassForm = document.getElementById('add-class-form');
-            const dayTabsContainer = document.getElementById('day-tabs-container');
-            const formDaySelector = document.getElementById('form-day-selector');
-            const selectedDayInput = document.getElementById('selected-day');
-
-            // --- Core Functions ---
-            function initializeApp() {
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('SW reg failed: ', err)));
-                }
-                setupUI();
-                setupEventListeners();
-                showPage('dashboard-page');
-            }
-
-            function setupUI() {
-                // Create day tabs for the timetable page
-                DAY_FULL_NAMES.forEach(day => {
-                    const dayAbbr = day.substring(0, 3);
-                    dayTabsContainer.innerHTML += `<button onclick="selectDay('${day}')" id="tab-${day}" class="day-tab w-full text-center font-bold py-2 px-3 rounded-full transition-colors text-sm">${dayAbbr}</button>`;
-                });
-
-                // Create day selector buttons for the modal form
-                DAY_FULL_NAMES.forEach(day => {
-                    const dayAbbr = day.substring(0, 3);
-                    formDaySelector.innerHTML += `<button type="button" data-day="${day}" class="day-selector border-2 border-gray-600 text-gray-300 rounded-lg p-2 font-semibold transition-colors">${dayAbbr}</button>`;
-                });
-            }
-
-            function setupEventListeners() {
-                addClassBtn.addEventListener('click', () => {
-                    addClassForm.reset();
-                    selectedDayInput.value = ''; // Reset hidden input
-                    // Pre-select the current day in the form
-                    document.querySelectorAll('.day-selector').forEach(btn => {
-                        btn.classList.remove('selected');
-                        if (btn.dataset.day === currentDay) {
-                            btn.classList.add('selected');
-                            selectedDayInput.value = currentDay;
-                        }
-                    });
-                    showModal(addClassModal);
-                });
-                cancelClassBtn.addEventListener('click', () => hideModal(addClassModal));
-                addClassModal.addEventListener('click', e => e.target === addClassModal && hideModal(addClassModal));
-
-                // Form day selector logic
-                formDaySelector.addEventListener('click', e => {
-                    if (e.target.matches('.day-selector')) {
-                        document.querySelectorAll('.day-selector').forEach(btn => btn.classList.remove('selected'));
-                        e.target.classList.add('selected');
-                        selectedDayInput.value = e.target.dataset.day;
+        function setupEventListeners() {
+            addClassBtn.addEventListener('click', () => {
+                addClassForm.reset();
+                selectedDayInput.value = ''; // Reset hidden input
+                // Pre-select the current day in the form
+                document.querySelectorAll('.day-selector').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.day === currentDay) {
+                        btn.classList.add('selected');
+                        selectedDayInput.value = currentDay;
                     }
                 });
+                showModal(addClassModal);
+            });
+            cancelClassBtn.addEventListener('click', () => hideModal(addClassModal));
+            addClassModal.addEventListener('click', e => e.target === addClassModal && hideModal(addClassModal));
 
-                addClassForm.addEventListener('submit', handleAddClass);
+            // Form day selector logic
+            formDaySelector.addEventListener('click', e => {
+                if (e.target.matches('.day-selector')) {
+                    document.querySelectorAll('.day-selector').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    selectedDayInput.value = e.target.dataset.day;
+                }
+            });
+
+            addClassForm.addEventListener('submit', handleAddClass);
+        }
+
+        // --- Page & Modal Management ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+            const newPage = document.getElementById(pageId);
+            if (newPage) newPage.style.display = 'block';
+            if (pageId === 'timetable-page') selectDay(currentDay);
+            startNextClassTimer();
+            if (pageId === 'gpa-page') renderGpaPage();
+            if (pageId === 'exams-page') renderExamsPage();
+            if (pageId === 'assignments-page') renderAssignmentsPage();
+        }
+        function showModal(modal) { modal.classList.remove('hidden'); }
+        function hideModal(modal) { modal.classList.add('hidden'); }
+
+
+
+
+
+
+
+        // ===================================
+        // ====  DASHBOARD COUNTDOWNS SCRIPT ====
+        // ===================================
+
+        let countdownInterval; // Holds our timer to prevent multiple timers running
+
+        function startCountdownTimers() {
+            // Clear any previous timer
+            clearInterval(countdownInterval);
+
+            // Get the containers
+            const assignmentContainer = document.getElementById('next-assignment-container');
+            const examContainer = document.getElementById('next-exam-container');
+
+            // Start a new timer that runs every second
+            countdownInterval = setInterval(() => {
+                // --- Find Next Assignment ---
+                const assignments = JSON.parse(localStorage.getItem('uniHubAssignments')) || [];
+                const upcomingAssignments = assignments.filter(a => !a.completed && new Date(a.dueDate + 'T' + a.dueTime) > new Date());
+                upcomingAssignments.sort((a, b) => new Date(a.dueDate + 'T' + a.dueTime) - new Date(b.dueDate + 'T' + b.dueTime));
+                const nextAssignment = upcomingAssignments[0];
+
+                // --- Find Next Exam ---
+                const exams = JSON.parse(localStorage.getItem('uniHubExams')) || [];
+                const upcomingExams = exams.filter(e => new Date(e.date + 'T' + e.time) > new Date());
+                upcomingExams.sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
+                const nextExam = upcomingExams[0];
+
+                // --- Update Assignment Card ---
+                if (nextAssignment) {
+                    const dueDate = new Date(`${nextAssignment.dueDate}T${nextAssignment.dueTime}`);
+                    assignmentContainer.innerHTML = `
+                <h4 class="font-bold text-lg text-white truncate">${nextAssignment.name}</h4>
+                <div class="text-2xl font-bold text-indigo-400">${calculateTimeRemaining(dueDate)}</div>
+            `;
+                } else {
+                    assignmentContainer.innerHTML = `<p class="text-gray-500 pt-2">You're all caught up!</p>`;
+                }
+
+                // --- Update Exam Card ---
+                if (nextExam) {
+                    const examDate = new Date(`${nextExam.date}T${nextExam.time}`);
+                    examContainer.innerHTML = `
+                <h4 class="font-bold text-lg text-white truncate">${nextExam.name}</h4>
+                <div class="text-2xl font-bold text-indigo-400">${calculateTimeRemaining(examDate)}</div>
+            `;
+                } else {
+                    examContainer.innerHTML = `<p class="text-gray-500 pt-2">No exams scheduled.</p>`;
+                }
+
+            }, 1000); // Update every second
+        }
+
+        function calculateTimeRemaining(targetDate) {
+            const diff = targetDate.getTime() - new Date().getTime();
+            if (diff <= 0) return "Time's up!";
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            if (days > 0) return `${days}d ${hours}h`;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // --- Trigger the countdown when the app loads ---
+        document.addEventListener('DOMContentLoaded', startCountdownTimers);
+
+
+
+
+
+
+
+
+
+
+
+
+        // --- Timetable Logic ---
+        function selectDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`tab-${day}`).classList.add('active');
+            renderTimetableForDay();
+        }
+
+        function handleAddClass(e) {
+            e.preventDefault();
+            if (!selectedDayInput.value) {
+                alert("Please select a day of the week."); // Replace with a better notification later
+                return;
             }
+            const newClass = {
+                id: Date.now(),
+                day: selectedDayInput.value,
+                subject: document.getElementById('subject-name').value,
+                professor: document.getElementById('professor-name').value,
+                room: document.getElementById('room-location').value,
+                startTime: document.getElementById('start-time').value,
+                endTime: document.getElementById('end-time').value,
+            };
+            const classes = getClasses();
+            classes.push(newClass);
+            saveClasses(classes);
+            hideModal(addClassModal);
+            selectDay(newClass.day); // Switch to the day the class was added to
+        }
 
-            // --- Page & Modal Management ---
-            function showPage(pageId) {
-                document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
-                const newPage = document.getElementById(pageId);
-                if (newPage) newPage.style.display = 'block';
-                if (pageId === 'timetable-page') selectDay(currentDay);
-            }
-            function showModal(modal) { modal.classList.remove('hidden'); }
-            function hideModal(modal) { modal.classList.add('hidden'); }
-
-            // --- Timetable Logic ---
-            function selectDay(day) {
-                currentDay = day;
-                document.querySelectorAll('.day-tab').forEach(tab => tab.classList.remove('active'));
-                document.getElementById(`tab-${day}`).classList.add('active');
+        function deleteClass(classId) {
+            if (confirm("Are you sure you want to delete this class?")) {
+                let classes = getClasses();
+                classes = classes.filter(c => c.id !== classId);
+                saveClasses(classes);
                 renderTimetableForDay();
             }
+        }
 
-            function handleAddClass(e) {
-                e.preventDefault();
-                if (!selectedDayInput.value) {
-                    alert("Please select a day of the week."); // Replace with a better notification later
-                    return;
-                }
-                const newClass = {
-                    id: Date.now(),
-                    day: selectedDayInput.value,
-                    subject: document.getElementById('subject-name').value,
-                    professor: document.getElementById('professor-name').value,
-                    room: document.getElementById('room-location').value,
-                    startTime: document.getElementById('start-time').value,
-                    endTime: document.getElementById('end-time').value,
-                };
-                const classes = getClasses();
-                classes.push(newClass);
-                saveClasses(classes);
-                hideModal(addClassModal);
-                selectDay(newClass.day); // Switch to the day the class was added to
-            }
+        function renderTimetableForDay() {
+            const allClasses = getClasses();
+            const classesForDay = allClasses.filter(c => c.day === currentDay).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-            function deleteClass(classId) {
-                if (confirm("Are you sure you want to delete this class?")) {
-                    let classes = getClasses();
-                    classes = classes.filter(c => c.id !== classId);
-                    saveClasses(classes);
-                    renderTimetableForDay();
-                }
-            }
+            const listView = document.getElementById('classes-list-view');
+            const emptyView = document.getElementById('empty-day-view');
 
-            function renderTimetableForDay() {
-                const allClasses = getClasses();
-                const classesForDay = allClasses.filter(c => c.day === currentDay).sort((a, b) => a.startTime.localeCompare(b.startTime));
+            listView.innerHTML = '';
 
-                const listView = document.getElementById('classes-list-view');
-                const emptyView = document.getElementById('empty-day-view');
+            if (classesForDay.length === 0) {
+                document.getElementById('empty-day-title').textContent = `No classes for ${currentDay}`;
+                emptyView.style.display = 'flex';
+                listView.style.display = 'none';
+            } else {
+                emptyView.style.display = 'none';
+                listView.style.display = 'block';
 
-                listView.innerHTML = '';
-
-                if (classesForDay.length === 0) {
-                    document.getElementById('empty-day-title').textContent = `No classes for ${currentDay}`;
-                    emptyView.style.display = 'flex';
-                    listView.style.display = 'none';
-                } else {
-                    emptyView.style.display = 'none';
-                    listView.style.display = 'block';
-
-                    classesForDay.forEach((c, index) => {
-                        const accentColor = ACCENT_COLORS[index % ACCENT_COLORS.length];
-                        const classCard = `
+                classesForDay.forEach((c, index) => {
+                    const accentColor = ACCENT_COLORS[index % ACCENT_COLORS.length];
+                    const classCard = `
                                         <div class="bg-gray-800 p-4 rounded-xl space-y-3 relative border-l-4" style="border-color: ${accentColor};">
                                             <button onclick="deleteClass(${c.id})" class="absolute top-2 right-2 text-gray-500 hover:text-red-400 p-1 rounded-full hover:bg-gray-700 transition-colors">
                                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -713,282 +1178,223 @@
                                             ${c.room ? `<p class="text-base text-gray-300 flex items-center gap-2"><svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.976 2.343-1.874a10.44 10.44 0 002.343-3.861c.42-1.262.592-2.682.592-4.156 0-3.865-3.135-7-7-7S3 4.135 3 8c0 1.474.172 2.894.592 4.156a10.44 10.44 0 002.343 3.861c.898.898 1.723 1.49 2.343 1.874.311.193.571.337.757.433.091.047.182.093.281.14l.018.008.006.003zM10 11.25a3.25 3.25 0 100-6.5 3.25 3.25 0 000 6.5z" clip-rule="evenodd" /></svg>${c.room}</p>` : ''}
                                         </div>
                                     `;
-                        listView.innerHTML += classCard;
-                    });
-                }
-            }
-
-            // --- Data Persistence ---
-            function getClasses() { return JSON.parse(localStorage.getItem('uniHubClasses')) || []; }
-            function saveClasses(classes) { localStorage.setItem('uniHubClasses', JSON.stringify(classes)); }
-
-            // --- Utility Functions ---
-            function formatTime(timeString) { // E.g., "14:30" -> "2:30 PM"
-                if (!timeString) return '';
-                const [hourString, minute] = timeString.split(':');
-                const hour = +hourString % 24;
-                return (hour % 12 || 12) + ':' + minute + (hour < 12 ? ' AM' : ' PM');
-            }
-
-
-
-            // gpa calculator
-
-
-
-            // ===================================
-            // ====   GPA CALCULATOR SCRIPT   ====
-            // ===================================
-
-            // --- DOM Elements for GPA Page ---
-            const gpaAddCourseForm = document.getElementById('gpa-add-course-form'); // Corrected form ID
-            const coursesListContainer = document.getElementById('courses-list-container');
-            const emptyGpaView = document.getElementById('empty-gpa-view');
-            const cgpaDisplay = document.getElementById('cgpa-display');
-            const clearGpaBtn = document.getElementById('clear-gpa-btn');
-
-            // --- Event Listeners ---
-            // Check if the form exists before adding listener to prevent errors
-            if (gpaAddCourseForm) {
-                gpaAddCourseForm.addEventListener('submit', handleAddCourseToGpa);
-            }
-            if (clearGpaBtn) {
-                clearGpaBtn.addEventListener('click', handleClearGpaData);
-            }
-
-
-            // --- Data Functions ---
-            function getGpaCourses() {
-                return JSON.parse(localStorage.getItem('uniHubGpaCourses')) || [];
-            }
-
-            function saveGpaCourses(courses) {
-                localStorage.setItem('uniHubGpaCourses', JSON.stringify(courses));
-                renderGpaPage(); // Re-render the page every time data changes
-            }
-
-            // --- Event Handlers ---
-            function handleAddCourseToGpa(e) {
-                e.preventDefault();
-                // Corrected input IDs
-                const courseName = document.getElementById('gpa-course-name').value;
-                const credits = parseFloat(document.getElementById('gpa-course-credits').value);
-                const grade = parseFloat(document.getElementById('gpa-course-grade').value);
-
-                if (!courseName || isNaN(credits) || isNaN(grade) || credits <= 0 || grade < 0 || grade > 10) {
-                    alert("Please enter valid course details.\nCredits must be > 0 and Grade must be between 0-10.");
-                    return;
-                }
-
-                const newCourse = {
-                    id: Date.now(),
-                    name: courseName,
-                    credits: credits,
-                    grade: grade,
-                };
-
-                const courses = getGpaCourses();
-                courses.push(newCourse);
-                saveGpaCourses(courses);
-
-                gpaAddCourseForm.reset();
-            }
-
-            function deleteGpaCourse(courseId) {
-                let courses = getGpaCourses();
-                courses = courses.filter(course => course.id !== courseId);
-                saveGpaCourses(courses);
-            }
-
-            function handleClearGpaData() {
-                if (confirm("Are you sure you want to delete all your GPA data? This cannot be undone.")) {
-                    saveGpaCourses([]);
-                }
-            }
-
-            // --- Rendering Functions ---
-            function calculateAndDisplayGpa() {
-                const courses = getGpaCourses();
-                if (courses.length === 0) {
-                    cgpaDisplay.textContent = '0.00';
-                    return;
-                }
-
-                let totalQualityPoints = 0;
-                let totalCredits = 0;
-
-                courses.forEach(course => {
-                    totalQualityPoints += course.credits * course.grade;
-                    totalCredits += course.credits;
+                    listView.innerHTML += classCard;
                 });
-
-                const cgpa = totalCredits === 0 ? 0 : totalQualityPoints / totalCredits;
-                cgpaDisplay.textContent = cgpa.toFixed(2);
             }
+        }
 
-            function renderGpaPage() {
-                // This check ensures the code doesn't run if we are on a different page
-                if (!document.getElementById('gpa-page') || document.getElementById('gpa-page').style.display === 'none') {
-                    return;
+        // --- Data Persistence ---
+        function getClasses() { return JSON.parse(localStorage.getItem('uniHubClasses')) || []; }
+        function saveClasses(classes) { localStorage.setItem('uniHubClasses', JSON.stringify(classes)); }
+
+        // --- Utility Functions ---
+        function formatTime(timeString) { // E.g., "14:30" -> "2:30 PM"
+            if (!timeString) return '';
+            const [hourString, minute] = timeString.split(':');
+            const hour = +hourString % 24;
+            return (hour % 12 || 12) + ':' + minute + (hour < 12 ? ' AM' : ' PM');
+        }
+
+
+
+
+
+
+        // ===================================
+        // ====   NEXT CLASS TIMER SCRIPT   ====
+        // ===================================
+
+        let nextClassInterval; // Holds the timer
+
+        function startNextClassTimer() {
+            // Clear any previous timer to be safe
+            clearInterval(nextClassInterval);
+
+            const container = document.getElementById('next-class-container');
+            const countdownEl = document.getElementById('next-class-countdown');
+            const subjectEl = document.getElementById('next-class-subject');
+
+            nextClassInterval = setInterval(() => {
+                const allClasses = getClasses(); // Uses your existing function
+                const now = new Date();
+                let nextClass = null;
+                let soonestDiff = Infinity;
+
+                // Check for classes over the next 7 days
+                for (let i = 0; i < 7; i++) {
+                    const checkDate = new Date(now);
+                    checkDate.setDate(now.getDate() + i);
+                    const dayName = DAY_FULL_NAMES[checkDate.getDay()];
+
+                    const classesOnDay = allClasses.filter(c => c.day === dayName);
+
+                    for (const c of classesOnDay) {
+                        const [hour, minute] = c.startTime.split(':');
+                        const classDateTime = new Date(checkDate);
+                        classDateTime.setHours(hour, minute, 0, 0);
+
+                        const diff = classDateTime.getTime() - now.getTime();
+
+                        if (diff > 0 && diff < soonestDiff) {
+                            soonestDiff = diff;
+                            nextClass = { ...c, dateTime: classDateTime };
+                        }
+                    }
+                    // If we found a class today or in the loop, we don't need to check further days
+                    if (nextClass) break;
                 }
 
-                const courses = getGpaCourses();
-                coursesListContainer.innerHTML = '';
-                coursesListContainer.appendChild(emptyGpaView);
+                if (nextClass) {
+                    container.style.display = 'block';
+                    const days = Math.floor(soonestDiff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((soonestDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((soonestDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((soonestDiff % (1000 * 60)) / 1000);
 
-                if (courses.length === 0) {
-                    emptyGpaView.style.display = 'block';
+                    let countdownText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    if (days > 0) {
+                        countdownText = `${days}d ${countdownText}`;
+                    }
+
+                    countdownEl.textContent = countdownText;
+                    subjectEl.textContent = nextClass.subject;
                 } else {
-                    emptyGpaView.style.display = 'none';
-                    courses.slice().reverse().forEach(course => { // Use slice().reverse() to show newest first without modifying original array
-                        const courseCard = document.createElement('div');
-                        courseCard.className = 'bg-gray-800 p-4 rounded-xl flex items-center justify-between';
-                        courseCard.innerHTML = `
-                                <div>
-                                    <h5 class="font-bold text-white">${course.name}</h5>
-                                    <p class="text-sm text-gray-400">Credits: ${course.credits} | Grade: ${course.grade}</p>
-                                </div>
-                                <button onclick="deleteGpaCourse(${course.id})" class="text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-gray-700 transition-colors">
-                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                            `;
-                        coursesListContainer.appendChild(courseCard); // Use appendChild for correct order
-                    });
+                    container.style.display = 'none';
                 }
 
-                calculateAndDisplayGpa();
+            }, 1000);
+        }
+
+        function stopNextClassTimer() {
+            clearInterval(nextClassInterval);
+        }
+
+
+
+
+
+        // gpa calculator
+
+        // exam page
+
+        // ===================================
+        // ====   EXAM SCHEDULE SCRIPT    ====
+        // ===================================
+
+        // --- DOM Elements ---
+        const addExamBtn = document.getElementById('add-exam-btn');
+        const addExamModal = document.getElementById('add-exam-modal');
+        const addExamForm = document.getElementById('add-exam-form');
+        const cancelExamBtn = document.getElementById('cancel-exam-btn');
+        const upcomingExamsList = document.getElementById('upcoming-exams-list');
+        const pastExamsList = document.getElementById('past-exams-list');
+        const emptyExamsView = document.getElementById('empty-exams-view');
+        let examCountdownInterval;
+
+        // --- Event Listeners ---
+        if (addExamBtn) {
+            addExamBtn.addEventListener('click', () => {
+                addExamForm.reset();
+                showModal(addExamModal);
+            });
+            cancelExamBtn.addEventListener('click', () => hideModal(addExamModal));
+            addExamModal.addEventListener('click', e => e.target === addExamModal && hideModal(addExamModal));
+            addExamForm.addEventListener('submit', handleAddExam);
+        }
+
+        // --- Data Functions ---
+        function getExams() {
+            return JSON.parse(localStorage.getItem('uniHubExams')) || [];
+        }
+
+        function saveExams(exams) {
+            localStorage.setItem('uniHubExams', JSON.stringify(exams));
+            renderExamsPage();
+        }
+
+        // --- Event Handlers ---
+        function handleAddExam(e) {
+            e.preventDefault();
+            const newExam = {
+                id: Date.now(),
+                name: document.getElementById('exam-name').value,
+                location: document.getElementById('exam-location').value,
+                date: document.getElementById('exam-date').value,
+                time: document.getElementById('exam-time').value,
+            };
+
+            if (!newExam.name || !newExam.date || !newExam.time) {
+                alert("Please fill in the exam name, date, and time.");
+                return;
             }
 
-            // --- Final Integration Reminder ---
-            // Remember to call renderGpaPage() inside your main showPage function:
-            /*
-            function showPage(pageId) {
-                // ... other code ...
-                if (pageId === 'gpa-page') renderGpaPage();
-            }
-            */
+            const exams = getExams();
+            exams.push(newExam);
+            saveExams(exams);
+            hideModal(addExamModal);
+        }
 
-
-            // exam page
-
-            // ===================================
-            // ====   EXAM SCHEDULE SCRIPT    ====
-            // ===================================
-
-            // --- DOM Elements ---
-            const addExamBtn = document.getElementById('add-exam-btn');
-            const addExamModal = document.getElementById('add-exam-modal');
-            const addExamForm = document.getElementById('add-exam-form');
-            const cancelExamBtn = document.getElementById('cancel-exam-btn');
-            const upcomingExamsList = document.getElementById('upcoming-exams-list');
-            const pastExamsList = document.getElementById('past-exams-list');
-            const emptyExamsView = document.getElementById('empty-exams-view');
-            let examCountdownInterval;
-
-            // --- Event Listeners ---
-            if (addExamBtn) {
-                addExamBtn.addEventListener('click', () => {
-                    addExamForm.reset();
-                    showModal(addExamModal);
-                });
-                cancelExamBtn.addEventListener('click', () => hideModal(addExamModal));
-                addExamModal.addEventListener('click', e => e.target === addExamModal && hideModal(addExamModal));
-                addExamForm.addEventListener('submit', handleAddExam);
-            }
-
-            // --- Data Functions ---
-            function getExams() {
-                return JSON.parse(localStorage.getItem('uniHubExams')) || [];
-            }
-
-            function saveExams(exams) {
-                localStorage.setItem('uniHubExams', JSON.stringify(exams));
-                renderExamsPage();
-            }
-
-            // --- Event Handlers ---
-            function handleAddExam(e) {
-                e.preventDefault();
-                const newExam = {
-                    id: Date.now(),
-                    name: document.getElementById('exam-name').value,
-                    location: document.getElementById('exam-location').value,
-                    date: document.getElementById('exam-date').value,
-                    time: document.getElementById('exam-time').value,
-                };
-
-                if (!newExam.name || !newExam.date || !newExam.time) {
-                    alert("Please fill in the exam name, date, and time.");
-                    return;
-                }
-
-                const exams = getExams();
-                exams.push(newExam);
+        function deleteExam(examId) {
+            if (confirm("Are you sure you want to delete this exam?")) {
+                let exams = getExams();
+                exams = exams.filter(exam => exam.id !== examId);
                 saveExams(exams);
-                hideModal(addExamModal);
+            }
+        }
+
+        // --- Rendering & Countdown Logic ---
+        function formatCountdown(examDateTime) {
+            const now = new Date();
+            const diff = examDateTime.getTime() - now.getTime();
+
+            if (diff < 0) return { text: "Completed", color: "text-gray-500" };
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (days > 1) return { text: `Starts in ${days} days`, color: "text-green-400" };
+            if (days === 1) return { text: "Starts tomorrow", color: "text-yellow-400" };
+            if (hours > 0) return { text: `Starts in ${hours}h ${minutes}m`, color: "text-orange-400" };
+            if (minutes > 0) return { text: `Starts in ${minutes} minutes`, color: "text-red-500" };
+            return { text: "Starting now", color: "text-red-500 font-bold" };
+        }
+
+        function renderExamsPage() {
+            // This check ensures the code doesn't run if we are on a different page
+            if (!document.getElementById('exams-page') || document.getElementById('exams-page').style.display === 'none') {
+                clearInterval(examCountdownInterval); // Stop interval when leaving the page
+                return;
             }
 
-            function deleteExam(examId) {
-                if (confirm("Are you sure you want to delete this exam?")) {
-                    let exams = getExams();
-                    exams = exams.filter(exam => exam.id !== examId);
-                    saveExams(exams);
-                }
-            }
+            const exams = getExams();
+            const now = new Date();
 
-            // --- Rendering & Countdown Logic ---
-            function formatCountdown(examDateTime) {
-                const now = new Date();
-                const diff = examDateTime.getTime() - now.getTime();
+            upcomingExamsList.innerHTML = '';
+            pastExamsList.innerHTML = '';
 
-                if (diff < 0) return { text: "Completed", color: "text-gray-500" };
+            const upcoming = exams.filter(e => new Date(`${e.date}T${e.time}`).getTime() >= now.getTime());
+            const past = exams.filter(e => new Date(`${e.date}T${e.time}`).getTime() < now.getTime());
 
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            // Sort upcoming soonest first, and past most recent first
+            upcoming.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+            past.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
 
-                if (days > 1) return { text: `Starts in ${days} days`, color: "text-green-400" };
-                if (days === 1) return { text: "Starts tomorrow", color: "text-yellow-400" };
-                if (hours > 0) return { text: `Starts in ${hours}h ${minutes}m`, color: "text-orange-400" };
-                if (minutes > 0) return { text: `Starts in ${minutes} minutes`, color: "text-red-500" };
-                return { text: "Starting now", color: "text-red-500 font-bold" };
-            }
+            if (exams.length === 0) {
+                emptyExamsView.style.display = 'flex';
+                document.getElementById('upcoming-exams-container').style.display = 'none';
+                document.getElementById('past-exams-container').style.display = 'none';
+            } else {
+                emptyExamsView.style.display = 'none';
+                document.getElementById('upcoming-exams-container').style.display = 'block';
+                document.getElementById('past-exams-container').style.display = 'block';
 
-            function renderExamsPage() {
-                // This check ensures the code doesn't run if we are on a different page
-                if (!document.getElementById('exams-page') || document.getElementById('exams-page').style.display === 'none') {
-                    clearInterval(examCountdownInterval); // Stop interval when leaving the page
-                    return;
-                }
-
-                const exams = getExams();
-                const now = new Date();
-
-                upcomingExamsList.innerHTML = '';
-                pastExamsList.innerHTML = '';
-
-                const upcoming = exams.filter(e => new Date(`${e.date}T${e.time}`).getTime() >= now.getTime());
-                const past = exams.filter(e => new Date(`${e.date}T${e.time}`).getTime() < now.getTime());
-
-                // Sort upcoming soonest first, and past most recent first
-                upcoming.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
-                past.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
-
-                if (exams.length === 0) {
-                    emptyExamsView.style.display = 'flex';
-                    document.getElementById('upcoming-exams-container').style.display = 'none';
-                    document.getElementById('past-exams-container').style.display = 'none';
-                } else {
-                    emptyExamsView.style.display = 'none';
-                    document.getElementById('upcoming-exams-container').style.display = 'block';
-                    document.getElementById('past-exams-container').style.display = 'block';
-
-                    upcoming.forEach(exam => {
-                        const examDateTime = new Date(`${exam.date}T${exam.time}`);
-                        const countdown = formatCountdown(examDateTime);
-                        const card = document.createElement('div');
-                        card.className = "bg-gray-800 p-4 rounded-xl border-l-4 border-indigo-500";
-                        card.innerHTML = `
+                upcoming.forEach(exam => {
+                    const examDateTime = new Date(`${exam.date}T${exam.time}`);
+                    const countdown = formatCountdown(examDateTime);
+                    const card = document.createElement('div');
+                    card.className = "bg-gray-800 p-4 rounded-xl border-l-4 border-indigo-500";
+                    card.innerHTML = `
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <h4 class="font-bold text-white text-lg">${exam.name}</h4>
@@ -1001,230 +1407,230 @@
                                     <p class="font-semibold ${countdown.color}">${countdown.text}</p>
                                 </div>
                             `;
-                        upcomingExamsList.appendChild(card);
-                    });
-
-                    past.forEach(exam => {
-                        const card = document.createElement('div');
-                        card.className = "bg-gray-800 p-4 rounded-xl opacity-60";
-                        card.innerHTML = `<h4 class="font-medium text-gray-300">${exam.name}</h4><p class="text-sm text-gray-500">Completed on ${new Date(exam.date).toLocaleDateString()}</p>`;
-                        pastExamsList.appendChild(card);
-                    });
-                }
-
-                // Auto-refresh countdowns
-                clearInterval(examCountdownInterval); // Clear previous interval
-                examCountdownInterval = setInterval(renderExamsPage, 60000); // Refresh every minute
-            }
-
-            // --- Final Integration Reminder ---
-            // Remember to call renderExamsPage() inside your main showPage function:
-            /*
-            function showPage(pageId) {
-                // ... other code ...
-                if (pageId === 'exams-page') renderExamsPage();
-            }
-            */
-
-
-
-
-
-
-            // assignment  page
-
-            // ===================================
-            // ====    ASSIGNMENTS SCRIPT     ====
-            // ===================================
-
-            // --- DOM Elements ---
-            const addAssignmentBtn = document.getElementById('add-assignment-btn');
-            const addAssignmentModal = document.getElementById('add-assignment-modal');
-            const addAssignmentModalContent = document.getElementById('add-assignment-modal-content');
-            const addAssignmentForm = document.getElementById('add-assignment-form');
-            const cancelAssignmentBtn = document.getElementById('cancel-assignment-btn');
-            const assignmentModalTitle = document.getElementById('assignment-modal-title');
-            const assignmentEditId = document.getElementById('assignment-edit-id');
-            const dueSoonList = document.getElementById('due-soon-list');
-            const completedList = document.getElementById('completed-list');
-            const emptyAssignmentsView = document.getElementById('empty-assignments-view');
-            let assignmentCountdownInterval;
-
-            // --- Modal Animation Functions ---
-            function showAssignmentModal() {
-                addAssignmentModal.classList.remove('hidden');
-                setTimeout(() => {
-                    addAssignmentModalContent.classList.remove('opacity-0', '-translate-y-4');
-                }, 10);
-            }
-
-            function hideAssignmentModal() {
-                addAssignmentModalContent.classList.add('opacity-0', '-translate-y-4');
-                setTimeout(() => {
-                    addAssignmentModal.classList.add('hidden');
-                }, 300);
-            }
-
-            // --- Event Listeners ---
-            if (addAssignmentBtn) {
-                addAssignmentBtn.addEventListener('click', () => {
-                    addAssignmentForm.reset();
-                    assignmentEditId.value = ''; // Clear edit ID
-                    assignmentModalTitle.textContent = 'Add New Assignment';
-
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const day = String(now.getDate()).padStart(2, '0');
-                    document.getElementById('assignment-due-date').value = `${year}-${month}-${day}`;
-                    document.getElementById('assignment-due-time').value = '23:59';
-
-                    showAssignmentModal();
+                    upcomingExamsList.appendChild(card);
                 });
-                cancelAssignmentBtn.addEventListener('click', hideAssignmentModal);
-                addAssignmentModal.addEventListener('click', e => e.target === addAssignmentModal && hideAssignmentModal());
-                addAssignmentForm.addEventListener('submit', handleSaveAssignment);
+
+                past.forEach(exam => {
+                    const card = document.createElement('div');
+                    card.className = "bg-gray-800 p-4 rounded-xl opacity-60";
+                    card.innerHTML = `<h4 class="font-medium text-gray-300">${exam.name}</h4><p class="text-sm text-gray-500">Completed on ${new Date(exam.date).toLocaleDateString()}</p>`;
+                    pastExamsList.appendChild(card);
+                });
             }
 
-            // --- Data Functions ---
-            function getAssignments() {
-                return JSON.parse(localStorage.getItem('uniHubAssignments')) || [];
-            }
+            // Auto-refresh countdowns
+            clearInterval(examCountdownInterval); // Clear previous interval
+            examCountdownInterval = setInterval(renderExamsPage, 60000); // Refresh every minute
+        }
 
-            function saveAssignments(assignments) {
-                localStorage.setItem('uniHubAssignments', JSON.stringify(assignments));
-                renderAssignmentsPage();
-            }
+        // --- Final Integration Reminder ---
+        // Remember to call renderExamsPage() inside your main showPage function:
+        /*
+        function showPage(pageId) {
+            // ... other code ...
+            if (pageId === 'exams-page') renderExamsPage();
+        }
+        */
 
-            // --- Event Handlers ---
-            function handleSaveAssignment(e) {
-                e.preventDefault();
-                const idToEdit = assignmentEditId.value;
-                const assignments = getAssignments();
 
-                const assignmentData = {
-                    name: document.getElementById('assignment-name').value,
-                    subject: document.getElementById('assignment-subject').value,
-                    dueDate: document.getElementById('assignment-due-date').value,
-                    dueTime: document.getElementById('assignment-due-time').value,
-                    completed: false
-                };
 
-                if (!assignmentData.name || !assignmentData.dueDate || !assignmentData.dueTime) {
-                    alert("Please provide a name, due date, and due time for the assignment.");
-                    return;
-                }
 
-                if (idToEdit) {
-                    // Find and update the existing assignment
-                    const index = assignments.findIndex(a => a.id == idToEdit);
-                    if (index !== -1) {
-                        assignments[index] = { ...assignments[index], ...assignmentData };
-                    }
-                } else {
-                    // Add a new assignment
-                    assignments.push({ ...assignmentData, id: Date.now() });
-                }
 
-                saveAssignments(assignments);
-                hideAssignmentModal();
-            }
 
-            function openEditAssignmentModal(id) {
-                const assignments = getAssignments();
-                const assignment = assignments.find(a => a.id === id);
-                if (!assignment) return;
+        // assignment  page
 
-                assignmentModalTitle.textContent = 'Edit Assignment';
-                assignmentEditId.value = assignment.id;
-                document.getElementById('assignment-name').value = assignment.name;
-                document.getElementById('assignment-subject').value = assignment.subject || '';
-                document.getElementById('assignment-due-date').value = assignment.dueDate;
-                document.getElementById('assignment-due-time').value = assignment.dueTime || '23:59';
+        // ===================================
+        // ====    ASSIGNMENTS SCRIPT     ====
+        // ===================================
 
-                showAssignmentModal();
-            }
+        // --- DOM Elements ---
+        const addAssignmentBtn = document.getElementById('add-assignment-btn');
+        const addAssignmentModal = document.getElementById('add-assignment-modal');
+        const addAssignmentModalContent = document.getElementById('add-assignment-modal-content');
+        const addAssignmentForm = document.getElementById('add-assignment-form');
+        const cancelAssignmentBtn = document.getElementById('cancel-assignment-btn');
+        const assignmentModalTitle = document.getElementById('assignment-modal-title');
+        const assignmentEditId = document.getElementById('assignment-edit-id');
+        const dueSoonList = document.getElementById('due-soon-list');
+        const completedList = document.getElementById('completed-list');
+        const emptyAssignmentsView = document.getElementById('empty-assignments-view');
+        let assignmentCountdownInterval;
 
-            function toggleAssignmentStatus(assignmentId, cardElement) {
-                if (cardElement) {
-                    cardElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                    cardElement.style.transform = 'scale(0.95)';
-                    cardElement.style.opacity = '0';
-                }
+        // --- Modal Animation Functions ---
+        function showAssignmentModal() {
+            addAssignmentModal.classList.remove('hidden');
+            setTimeout(() => {
+                addAssignmentModalContent.classList.remove('opacity-0', '-translate-y-4');
+            }, 10);
+        }
 
-                setTimeout(() => {
-                    let assignments = getAssignments();
-                    const assignment = assignments.find(a => a.id === assignmentId);
-                    if (assignment) {
-                        assignment.completed = !assignment.completed;
-                        saveAssignments(assignments);
-                    }
-                }, 300);
-            }
+        function hideAssignmentModal() {
+            addAssignmentModalContent.classList.add('opacity-0', '-translate-y-4');
+            setTimeout(() => {
+                addAssignmentModal.classList.add('hidden');
+            }, 300);
+        }
 
-            function deleteAssignment(assignmentId) {
-                if (confirm("Are you sure you want to delete this assignment?")) {
-                    let assignments = getAssignments();
-                    assignments = assignments.filter(a => a.id !== assignmentId);
-                    saveAssignments(assignments);
-                }
-            }
-
-            // --- Rendering & Countdown Logic ---
-            function formatDueDateTime(dateStr, timeStr) {
-                const validTimeStr = timeStr || '23:59';
-                const due = new Date(`${dateStr}T${validTimeStr}`);
-                if (isNaN(due.getTime())) return { text: "Invalid date", color: "border-gray-500", textColor: "text-gray-400" };
+        // --- Event Listeners ---
+        if (addAssignmentBtn) {
+            addAssignmentBtn.addEventListener('click', () => {
+                addAssignmentForm.reset();
+                assignmentEditId.value = ''; // Clear edit ID
+                assignmentModalTitle.textContent = 'Add New Assignment';
 
                 const now = new Date();
-                const diff = due.getTime() - now.getTime();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                document.getElementById('assignment-due-date').value = `${year}-${month}-${day}`;
+                document.getElementById('assignment-due-time').value = '23:59';
 
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                showAssignmentModal();
+            });
+            cancelAssignmentBtn.addEventListener('click', hideAssignmentModal);
+            addAssignmentModal.addEventListener('click', e => e.target === addAssignmentModal && hideAssignmentModal());
+            addAssignmentForm.addEventListener('submit', handleSaveAssignment);
+        }
 
-                if (diff < 0) return { text: "Overdue", color: "border-red-500", textColor: "text-red-400" };
-                if (days === 0 && hours === 0 && minutes <= 59) return { text: `Due in ${minutes}m`, color: "border-red-500", textColor: "text-red-400" };
-                if (days === 0 && hours < 24) return { text: `Due in ${hours}h ${minutes}m`, color: "border-orange-500", textColor: "text-orange-400" };
-                if (days === 1) return { text: `Due tomorrow`, color: "border-yellow-500", textColor: "text-yellow-400" };
-                return { text: `Due in ${days} days`, color: "border-indigo-500", textColor: "text-indigo-400" };
+        // --- Data Functions ---
+        function getAssignments() {
+            return JSON.parse(localStorage.getItem('uniHubAssignments')) || [];
+        }
+
+        function saveAssignments(assignments) {
+            localStorage.setItem('uniHubAssignments', JSON.stringify(assignments));
+            renderAssignmentsPage();
+        }
+
+        // --- Event Handlers ---
+        function handleSaveAssignment(e) {
+            e.preventDefault();
+            const idToEdit = assignmentEditId.value;
+            const assignments = getAssignments();
+
+            const assignmentData = {
+                name: document.getElementById('assignment-name').value,
+                subject: document.getElementById('assignment-subject').value,
+                dueDate: document.getElementById('assignment-due-date').value,
+                dueTime: document.getElementById('assignment-due-time').value,
+                completed: false
+            };
+
+            if (!assignmentData.name || !assignmentData.dueDate || !assignmentData.dueTime) {
+                alert("Please provide a name, due date, and due time for the assignment.");
+                return;
             }
 
-            function renderAssignmentsPage() {
-                if (!document.getElementById('assignments-page') || document.getElementById('assignments-page').style.display === 'none') {
-                    clearInterval(assignmentCountdownInterval);
-                    return;
+            if (idToEdit) {
+                // Find and update the existing assignment
+                const index = assignments.findIndex(a => a.id == idToEdit);
+                if (index !== -1) {
+                    assignments[index] = { ...assignments[index], ...assignmentData };
                 }
+            } else {
+                // Add a new assignment
+                assignments.push({ ...assignmentData, id: Date.now() });
+            }
 
-                const assignments = getAssignments();
-                dueSoonList.innerHTML = '';
-                completedList.innerHTML = '';
+            saveAssignments(assignments);
+            hideAssignmentModal();
+        }
 
-                const due = assignments.filter(a => !a.completed);
-                const completed = assignments.filter(a => a.completed);
+        function openEditAssignmentModal(id) {
+            const assignments = getAssignments();
+            const assignment = assignments.find(a => a.id === id);
+            if (!assignment) return;
 
-                due.sort((a, b) => new Date(`${a.dueDate}T${a.dueTime || '00:00'}`) - new Date(`${b.dueDate}T${b.dueTime || '00:00'}`));
-                completed.sort((a, b) => new Date(`${b.dueDate}T${b.dueTime || '00:00'}`) - new Date(`${a.dueDate}T${a.dueTime || '00:00'}`));
+            assignmentModalTitle.textContent = 'Edit Assignment';
+            assignmentEditId.value = assignment.id;
+            document.getElementById('assignment-name').value = assignment.name;
+            document.getElementById('assignment-subject').value = assignment.subject || '';
+            document.getElementById('assignment-due-date').value = assignment.dueDate;
+            document.getElementById('assignment-due-time').value = assignment.dueTime || '23:59';
 
-                if (assignments.length === 0) {
-                    emptyAssignmentsView.style.display = 'flex';
-                    document.getElementById('due-soon-container').style.display = 'none';
-                    document.getElementById('completed-container').style.display = 'none';
-                } else {
-                    emptyAssignmentsView.style.display = 'none';
-                    document.getElementById('due-soon-container').style.display = due.length > 0 ? 'block' : 'none';
-                    document.getElementById('completed-container').style.display = completed.length > 0 ? 'block' : 'none';
+            showAssignmentModal();
+        }
 
-                    due.forEach(assignment => {
-                        const dueTime = assignment.dueTime || '23:59';
-                        const dueDateInfo = formatDueDateTime(assignment.dueDate, dueTime);
-                        const dueDateTime = new Date(`${assignment.dueDate}T${dueTime}`);
-                        const card = document.createElement('div');
-                        card.id = `assignment-${assignment.id}`;
-                        card.className = `bg-gray-800 p-4 rounded-xl flex items-center justify-between border-l-4 ${dueDateInfo.color}`;
-                        const timeString = isNaN(dueDateTime.getTime()) ? "" : `at ${dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        function toggleAssignmentStatus(assignmentId, cardElement) {
+            if (cardElement) {
+                cardElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                cardElement.style.transform = 'scale(0.95)';
+                cardElement.style.opacity = '0';
+            }
 
-                        card.innerHTML = `
+            setTimeout(() => {
+                let assignments = getAssignments();
+                const assignment = assignments.find(a => a.id === assignmentId);
+                if (assignment) {
+                    assignment.completed = !assignment.completed;
+                    saveAssignments(assignments);
+                }
+            }, 300);
+        }
+
+        function deleteAssignment(assignmentId) {
+            if (confirm("Are you sure you want to delete this assignment?")) {
+                let assignments = getAssignments();
+                assignments = assignments.filter(a => a.id !== assignmentId);
+                saveAssignments(assignments);
+            }
+        }
+
+        // --- Rendering & Countdown Logic ---
+        function formatDueDateTime(dateStr, timeStr) {
+            const validTimeStr = timeStr || '23:59';
+            const due = new Date(`${dateStr}T${validTimeStr}`);
+            if (isNaN(due.getTime())) return { text: "Invalid date", color: "border-gray-500", textColor: "text-gray-400" };
+
+            const now = new Date();
+            const diff = due.getTime() - now.getTime();
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (diff < 0) return { text: "Overdue", color: "border-red-500", textColor: "text-red-400" };
+            if (days === 0 && hours === 0 && minutes <= 59) return { text: `Due in ${minutes}m`, color: "border-red-500", textColor: "text-red-400" };
+            if (days === 0 && hours < 24) return { text: `Due in ${hours}h ${minutes}m`, color: "border-orange-500", textColor: "text-orange-400" };
+            if (days === 1) return { text: `Due tomorrow`, color: "border-yellow-500", textColor: "text-yellow-400" };
+            return { text: `Due in ${days} days`, color: "border-indigo-500", textColor: "text-indigo-400" };
+        }
+
+        function renderAssignmentsPage() {
+            if (!document.getElementById('assignments-page') || document.getElementById('assignments-page').style.display === 'none') {
+                clearInterval(assignmentCountdownInterval);
+                return;
+            }
+
+            const assignments = getAssignments();
+            dueSoonList.innerHTML = '';
+            completedList.innerHTML = '';
+
+            const due = assignments.filter(a => !a.completed);
+            const completed = assignments.filter(a => a.completed);
+
+            due.sort((a, b) => new Date(`${a.dueDate}T${a.dueTime || '00:00'}`) - new Date(`${b.dueDate}T${b.dueTime || '00:00'}`));
+            completed.sort((a, b) => new Date(`${b.dueDate}T${b.dueTime || '00:00'}`) - new Date(`${a.dueDate}T${a.dueTime || '00:00'}`));
+
+            if (assignments.length === 0) {
+                emptyAssignmentsView.style.display = 'flex';
+                document.getElementById('due-soon-container').style.display = 'none';
+                document.getElementById('completed-container').style.display = 'none';
+            } else {
+                emptyAssignmentsView.style.display = 'none';
+                document.getElementById('due-soon-container').style.display = due.length > 0 ? 'block' : 'none';
+                document.getElementById('completed-container').style.display = completed.length > 0 ? 'block' : 'none';
+
+                due.forEach(assignment => {
+                    const dueTime = assignment.dueTime || '23:59';
+                    const dueDateInfo = formatDueDateTime(assignment.dueDate, dueTime);
+                    const dueDateTime = new Date(`${assignment.dueDate}T${dueTime}`);
+                    const card = document.createElement('div');
+                    card.id = `assignment-${assignment.id}`;
+                    card.className = `bg-gray-800 p-4 rounded-xl flex items-center justify-between border-l-4 ${dueDateInfo.color}`;
+                    const timeString = isNaN(dueDateTime.getTime()) ? "" : `at ${dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                    card.innerHTML = `
                                 <div class="flex items-center space-x-4">
                                     <button onclick="toggleAssignmentStatus(${assignment.id}, this.closest('#assignment-${assignment.id}'))" class="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-600 hover:bg-gray-700 transition-colors flex items-center justify-center"></button>
                                     <div>
@@ -1238,14 +1644,14 @@
                                     <button onclick="deleteAssignment(${assignment.id})" class="text-gray-500 hover:text-red-400 p-1 rounded-full"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                                 </div>
                             `;
-                        dueSoonList.appendChild(card);
-                    });
+                    dueSoonList.appendChild(card);
+                });
 
-                    completed.forEach(assignment => {
-                        const card = document.createElement('div');
-                        card.id = `assignment-${assignment.id}`;
-                        card.className = "bg-gray-800 p-4 rounded-xl flex items-center justify-between opacity-60";
-                        card.innerHTML = `
+                completed.forEach(assignment => {
+                    const card = document.createElement('div');
+                    card.id = `assignment-${assignment.id}`;
+                    card.className = "bg-gray-800 p-4 rounded-xl flex items-center justify-between opacity-60";
+                    card.innerHTML = `
                                 <div class="flex items-center space-x-4">
                                     <button onclick="toggleAssignmentStatus(${assignment.id}, this.closest('#assignment-${assignment.id}'))" class="flex-shrink-0 w-7 h-7 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center">
                                         <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -1257,33 +1663,842 @@
                                 </div>
                                 <button onclick="deleteAssignment(${assignment.id})" class="text-gray-500 hover:text-red-400 p-1 rounded-full"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             `;
-                        completedList.appendChild(card);
-                    });
-                }
-
-                clearInterval(assignmentCountdownInterval);
-                assignmentCountdownInterval = setInterval(renderAssignmentsPage, 60000);
+                    completedList.appendChild(card);
+                });
             }
 
-            // --- Final Integration Reminder ---
+            clearInterval(assignmentCountdownInterval);
+            assignmentCountdownInterval = setInterval(renderAssignmentsPage, 60000);
+        }
+
+        // --- Final Integration Reminder ---
+        /*
+        function showPage(pageId) {
+            // ... other code ...
+            if (pageId === 'assignments-page') renderAssignmentsPage();
+        }
+        */
+
+
+
+
+
+        // ATTENDENCE PAGE
+
+        // ======================================================
+        // ====  ATTENDANCE TRACKER SCRIPT (Standalone Version) ====
+        // ======================================================
+
+        // This self-invoking function encapsulates all the attendance logic
+        // to prevent conflicts with other parts of the app.
+        (() => {
+            // --- DOM Elements ---
+            // These elements must exist in your attendance page HTML
+            const addSubjectBtn = document.getElementById('add-subject-btn');
+            const addSubjectModal = document.getElementById('add-subject-modal');
+            const addSubjectModalContent = document.getElementById('add-subject-modal-content');
+            const addSubjectForm = document.getElementById('add-subject-form');
+            const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
+            const subjectModalTitle = document.getElementById('subject-modal-title');
+            const initialSetupFields = document.getElementById('initial-setup-fields');
+            const subjectsList = document.getElementById('subjects-list');
+            const emptyAttendanceView = document.getElementById('empty-attendance-view');
+            const attendanceDetailModal = document.getElementById('attendance-detail-modal');
+            const attendanceDetailModalContent = document.getElementById('attendance-detail-modal-content');
+
+            // --- Modal Functions (Can be shared across your app) ---
+            function showModal(modal, content) {
+                if (!modal || !content) return;
+                modal.classList.remove('hidden');
+                setTimeout(() => content.classList.remove('opacity-0', '-translate-y-4'), 10);
+            }
+            function hideModal(modal, content) {
+                if (!modal || !content) return;
+                content.classList.add('opacity-0', '-translate-y-4');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+
+            // --- Data & State Functions ---
+            function getSubjects() { return JSON.parse(localStorage.getItem('uniHubSubjects')) || []; }
+            function saveSubjects(subjects) {
+                localStorage.setItem('uniHubSubjects', JSON.stringify(subjects));
+                renderAttendancePage();
+            }
+
+            // --- Event Handlers ---
+            if (addSubjectBtn) {
+                addSubjectBtn.addEventListener('click', () => {
+                    addSubjectForm.reset();
+                    subjectModalTitle.textContent = 'Add New Subject';
+                    initialSetupFields.style.display = 'block';
+                    showModal(addSubjectModal, addSubjectModalContent);
+                });
+                cancelSubjectBtn.addEventListener('click', () => hideModal(addSubjectModal, addSubjectModalContent));
+                addSubjectModal.addEventListener('click', e => e.target === addSubjectModal && hideModal(addSubjectModal, addSubjectModalContent));
+                addSubjectForm.addEventListener('submit', handleSaveSubject);
+                attendanceDetailModal.addEventListener('click', e => e.target === attendanceDetailModal && hideModal(attendanceDetailModal, attendanceDetailModalContent));
+            }
+
+            function handleSaveSubject(e) {
+                e.preventDefault();
+                const subjects = getSubjects();
+                const name = document.getElementById('subject-name').value;
+                const attended = parseInt(document.getElementById('initial-attended-classes').value) || 0;
+                const total = parseInt(document.getElementById('initial-total-classes').value) || 0;
+
+                if (!name) return alert("Please enter a subject name.");
+
+                const newSubject = { id: Date.now(), name, attended, total };
+                validateAttendance(newSubject);
+                subjects.push(newSubject);
+
+                saveSubjects(subjects);
+                hideModal(addSubjectModal, addSubjectModalContent);
+            }
+
+            function openAttendanceDetailModal(id) {
+                const subjects = getSubjects();
+                const subject = subjects.find(s => s.id === id);
+                if (!subject) return;
+
+                const percentage = subject.total > 0 ? (subject.attended / subject.total) * 100 : 0;
+
+                attendanceDetailModalContent.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-white">${subject.name}</h3>
+                    <p class="text-sm font-semibold ${percentage >= 75 ? 'text-green-400' : 'text-red-400'}">${percentage.toFixed(1)}%</p>
+                </div>
+                <button onclick="window.attendanceTracker.hideDetailModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <label class="text-sm font-medium text-gray-400">Classes Attended</label>
+                    <div class="flex items-center justify-center mt-2">
+                        <button onclick="window.attendanceTracker.updateAttendance(${id}, 'attended', -1)" class="w-10 h-10 rounded-full bg-gray-700 text-lg font-bold">-</button>
+                        <span class="w-16 text-center text-xl font-bold">${subject.attended}</span>
+                        <button onclick="window.attendanceTracker.updateAttendance(${id}, 'attended', 1)" class="w-10 h-10 rounded-full bg-gray-700 text-lg font-bold">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-400">Total Classes Held</label>
+                    <div class="flex items-center justify-center mt-2">
+                        <button onclick="window.attendanceTracker.updateAttendance(${id}, 'total', -1)" class="w-10 h-10 rounded-full bg-gray-700 text-lg font-bold">-</button>
+                        <span class="w-16 text-center text-xl font-bold">${subject.total}</span>
+                        <button onclick="window.attendanceTracker.updateAttendance(${id}, 'total', 1)" class="w-10 h-10 rounded-full bg-gray-700 text-lg font-bold">+</button>
+                    </div>
+                </div>
+            </div>`;
+                showModal(attendanceDetailModal, attendanceDetailModalContent);
+            }
+
+            function updateAttendance(id, type, amount) {
+                let subjects = getSubjects();
+                const subject = subjects.find(s => s.id === id);
+                if (!subject) return;
+
+                if (type === 'attended') subject.attended += amount;
+                if (type === 'total') subject.total += amount;
+
+                validateAttendance(subject);
+                saveSubjects(subjects);
+                openAttendanceDetailModal(id); // Refresh modal content
+            }
+
+            function validateAttendance(subject) {
+                if (subject.attended < 0) subject.attended = 0;
+                if (subject.total < 0) subject.total = 0;
+                if (subject.attended > subject.total) subject.total = subject.attended;
+            }
+
+            // --- Rendering Logic ---
+            function renderAttendancePage() {
+                if (!document.getElementById('attendance-page')) return;
+
+                const subjects = getSubjects();
+                if (subjects.length === 0) {
+                    emptyAttendanceView.style.display = 'flex';
+                    subjectsList.style.display = 'none';
+                } else {
+                    emptyAttendanceView.style.display = 'none';
+                    subjectsList.style.display = 'grid';
+                    subjectsList.innerHTML = subjects.map(subject => {
+                        const percentage = subject.total > 0 ? (subject.attended / subject.total) * 100 : 0;
+                        return `
+                <div class="bg-gray-800 p-4 rounded-xl cursor-pointer hover:bg-gray-700 transition-colors" onclick="window.attendanceTracker.openAttendanceDetailModal(${subject.id})">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white text-lg">${subject.name}</h4>
+                            <p class="text-sm ${percentage >= 75 ? 'text-green-400' : 'text-red-400'} font-semibold">${percentage.toFixed(1)}%</p>
+                        </div>
+                        <p class="text-lg text-gray-300 font-medium">${subject.attended} / ${subject.total}</p>
+                    </div>
+                    <div class="w-full bg-gray-600 rounded-full h-2.5 mt-3">
+                        <div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+                `;
+                    }).join('');
+                }
+            }
+
+            // Expose necessary functions to the global scope so inline onclicks can find them
+            window.attendanceTracker = {
+                renderAttendancePage,
+                openAttendanceDetailModal,
+                updateAttendance,
+                hideDetailModal: () => hideModal(attendanceDetailModal, attendanceDetailModalContent)
+            };
+
+        })();
+
+
+
+
+
+
+        // ===================================
+        // ====    RESOURCE HUB SCRIPT (User-Friendly Version)    ====
+        // ===================================
+
+        (() => {
+            // --- DOM Elements ---
+            const addResourceBtn = document.getElementById('add-resource-btn');
+            const addResourceModal = document.getElementById('add-resource-modal');
+            const addResourceForm = document.getElementById('add-resource-form');
+            const cancelResourceBtn = document.getElementById('cancel-resource-btn');
+            const resourceContainer = document.getElementById('resources-by-class-container');
+            const emptyResourcesView = document.getElementById('empty-resources-view');
+            const resourceClassSelect = document.getElementById('resource-class');
+            const resourceModalTitle = document.getElementById('add-resource-modal-title');
+            const resourceEditId = document.getElementById('resource-edit-id');
+            const deleteConfirmModal = document.getElementById('delete-resource-confirm-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-resource-btn');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-resource-btn');
+
+            // --- Data Functions ---
+            function getResources() { return JSON.parse(localStorage.getItem('uniHubResources')) || []; }
+            function saveResources(resources) {
+                localStorage.setItem('uniHubResources', JSON.stringify(resources));
+                renderResourcePage();
+            }
+            // We get classes from the main timetable script
+            function getClassesForResources() { return JSON.parse(localStorage.getItem('uniHubClasses')) || []; }
+
+            // --- Event Handlers ---
+            if (addResourceBtn) {
+                addResourceBtn.addEventListener('click', () => {
+                    addResourceForm.reset();
+                    resourceEditId.value = '';
+                    resourceModalTitle.textContent = 'Add New Resource';
+                    populateClassSelector();
+                    showModal(addResourceModal, addResourceModal.querySelector('.bg-gray-800'));
+                });
+                cancelResourceBtn.addEventListener('click', () => hideModal(addResourceModal, addResourceModal.querySelector('.bg-gray-800')));
+                addResourceModal.addEventListener('click', e => e.target === addResourceModal && hideModal(addResourceModal, addResourceModal.querySelector('.bg-gray-800')));
+                addResourceForm.addEventListener('submit', handleSaveResource);
+                cancelDeleteBtn.addEventListener('click', () => hideModal(deleteConfirmModal, deleteConfirmModal.querySelector('.bg-gray-800')));
+            }
+
+            function handleSaveResource(e) {
+                e.preventDefault();
+                const resources = getResources();
+                const idToEdit = resourceEditId.value;
+
+                const resourceData = {
+                    title: document.getElementById('resource-title').value,
+                    classId: document.getElementById('resource-class').value,
+                    link: document.getElementById('resource-link').value,
+                    notes: document.getElementById('resource-notes').value
+                };
+
+                if (idToEdit) {
+                    const index = resources.findIndex(r => r.id == idToEdit);
+                    if (index !== -1) resources[index] = { ...resources[index], ...resourceData };
+                } else {
+                    resources.push({ ...resourceData, id: Date.now() });
+                }
+
+                saveResources(resources);
+                hideModal(addResourceModal, addResourceModal.querySelector('.bg-gray-800'));
+            }
+
+            function openEditResourceModal(resourceId) {
+                const resource = getResources().find(r => r.id === resourceId);
+                if (!resource) return;
+
+                addResourceForm.reset();
+                resourceModalTitle.textContent = 'Edit Resource';
+                resourceEditId.value = resource.id;
+                document.getElementById('resource-title').value = resource.title;
+                populateClassSelector(resource.classId); // Populate and select the class
+                document.getElementById('resource-link').value = resource.link;
+                document.getElementById('resource-notes').value = resource.notes;
+
+                showModal(addResourceModal, addResourceModal.querySelector('.bg-gray-800'));
+            }
+
+            function deleteResource(resourceId) {
+                showModal(deleteConfirmModal, deleteConfirmModal.querySelector('.bg-gray-800'));
+                confirmDeleteBtn.onclick = () => {
+                    let resources = getResources();
+                    resources = resources.filter(r => r.id !== resourceId);
+                    saveResources(resources);
+                    hideModal(deleteConfirmModal, deleteConfirmModal.querySelector('.bg-gray-800'));
+                };
+            }
+
+            function populateClassSelector(selectedClassId = null) {
+                const classes = getClassesForResources();
+                resourceClassSelect.innerHTML = '<option value="">General (No Class)</option>';
+                classes.forEach(c => {
+                    const selected = selectedClassId && c.id == selectedClassId ? 'selected' : '';
+                    resourceClassSelect.innerHTML += `<option value="${c.id}" ${selected}>${c.subject}</option>`;
+                });
+            }
+
+            // --- Rendering Logic ---
+            function renderResourcePage() {
+                if (!document.getElementById('resource-hub-page')) return;
+
+                const resources = getResources();
+                const classes = getClassesForResources();
+
+                if (resources.length === 0) {
+                    emptyResourcesView.style.display = 'flex';
+                    resourceContainer.style.display = 'none';
+                } else {
+                    emptyResourcesView.style.display = 'none';
+                    resourceContainer.style.display = 'block';
+
+                    // Group resources by classId
+                    const groupedResources = resources.reduce((acc, resource) => {
+                        const classId = resource.classId || 'general';
+                        if (!acc[classId]) acc[classId] = [];
+                        acc[classId].push(resource);
+                        return acc;
+                    }, {});
+
+                    resourceContainer.innerHTML = Object.keys(groupedResources).map(classId => {
+                        const associatedClass = classes.find(c => c.id == classId);
+                        const groupTitle = associatedClass ? associatedClass.subject : 'General';
+                        const resourcesHTML = groupedResources[classId].map(resource => `
+                    <div class="bg-gray-800 p-4 rounded-xl">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-white text-lg pr-4">${resource.title}</h4>
+                            <div class="flex-shrink-0 flex items-center space-x-2">
+                                <button onclick="window.resourceHub.openEditResourceModal(${resource.id})" class="text-gray-500 hover:text-blue-400 p-1">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                                </button>
+                                <button onclick="window.resourceHub.deleteResource(${resource.id})" class="text-gray-500 hover:text-red-400 p-1">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        ${resource.notes ? `<p class="text-gray-300 mt-2 text-sm">${resource.notes.replace(/\n/g, '<br>')}</p>` : ''}
+                        ${resource.link ? `<a href="${resource.link}" target="_blank" class="inline-block mt-3 text-sm text-blue-400 hover:text-blue-300 bg-gray-700 px-3 py-1 rounded-full">Open Link &rarr;</a>` : ''}
+                    </div>`).join('');
+
+                        return `<div><h3 class="text-xl font-bold text-indigo-400 mb-3">${groupTitle}</h3><div class="space-y-3">${resourcesHTML}</div></div>`;
+                    }).join('');
+                }
+            }
+
+            // Expose necessary functions
+            window.resourceHub = {
+                renderResourcePage,
+                deleteResource,
+                openEditResourceModal
+            };
+
+            // Integrate with main showPage function
+            const originalShowPage = window.showPage;
+            window.showPage = function (pageId) {
+                originalShowPage(pageId);
+                if (pageId === 'resource-hub-page') {
+                    window.resourceHub.renderResourcePage();
+                }
+            }
+        })();
+
+
+
+
+
+        // ===================================
+        // ====    TASK MANAGER SCRIPT    ====
+        // ===================================
+
+        (() => {
+            // --- DOM Elements ---
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const addTaskModal = document.getElementById('add-task-modal');
+            const addTaskForm = document.getElementById('add-task-form');
+            const cancelTaskBtn = document.getElementById('cancel-task-btn');
+            const todoTasksList = document.getElementById('todo-tasks-list');
+            const completedTasksList = document.getElementById('completed-tasks-list');
+            const emptyTasksView = document.getElementById('empty-tasks-view');
+
+            // --- Data Functions ---
+            function getTasks() { return JSON.parse(localStorage.getItem('uniHubTasks')) || []; }
+            function saveTasks(tasks) {
+                localStorage.setItem('uniHubTasks', JSON.stringify(tasks));
+                renderTasksPage();
+            }
+
+            // --- Event Handlers ---
+            if (addTaskBtn) {
+                addTaskBtn.addEventListener('click', () => {
+                    addTaskForm.reset();
+                    showModal(addTaskModal, addTaskModal.querySelector('.bg-gray-800'));
+                });
+                cancelTaskBtn.addEventListener('click', () => hideModal(addTaskModal, addTaskModal.querySelector('.bg-gray-800')));
+                addTaskModal.addEventListener('click', e => e.target === addTaskModal && hideModal(addTaskModal, addTaskModal.querySelector('.bg-gray-800')));
+                addTaskForm.addEventListener('submit', handleSaveTask);
+            }
+
+            function handleSaveTask(e) {
+                e.preventDefault();
+                const tasks = getTasks();
+                const taskName = document.getElementById('task-name').value;
+
+                if (!taskName) return;
+
+                tasks.push({ id: Date.now(), name: taskName, completed: false });
+                saveTasks(tasks);
+                hideModal(addTaskModal, addTaskModal.querySelector('.bg-gray-800'));
+            }
+
+            function toggleTaskStatus(taskId) {
+                let tasks = getTasks();
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveTasks(tasks);
+                }
+            }
+
+            function deleteTask(taskId) {
+                // Here you could add a custom confirmation modal if desired
+                if (confirm("Are you sure you want to delete this task?")) {
+                    let tasks = getTasks();
+                    tasks = tasks.filter(t => t.id !== taskId);
+                    saveTasks(tasks);
+                }
+            }
+
+            // --- Rendering Logic ---
+            function renderTasksPage() {
+                if (!document.getElementById('tasks-page')) return;
+
+                const tasks = getTasks();
+                const todoTasks = tasks.filter(t => !t.completed);
+                const completedTasks = tasks.filter(t => t.completed);
+
+                // Handle Empty State
+                emptyTasksView.style.display = tasks.length === 0 ? 'flex' : 'none';
+                document.getElementById('todo-tasks-container').style.display = todoTasks.length > 0 || tasks.length === 0 ? 'block' : 'none';
+                document.getElementById('completed-tasks-container').style.display = completedTasks.length > 0 ? 'block' : 'none';
+
+                // Render To-Do Tasks
+                todoTasksList.innerHTML = todoTasks.map(task => `
+            <div class="bg-gray-800 p-4 rounded-xl flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.taskManager.toggleTaskStatus(${task.id})" class="flex-shrink-0 w-7 h-7 rounded-full border-2 border-gray-600 hover:bg-gray-700"></button>
+                    <p class="text-white">${task.name}</p>
+                </div>
+                <button onclick="window.taskManager.deleteTask(${task.id})" class="text-gray-500 hover:text-red-400 p-1">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        `).join('');
+
+                // Render Completed Tasks
+                completedTasksList.innerHTML = completedTasks.map(task => `
+            <div class="bg-gray-800 p-4 rounded-xl flex items-center justify-between opacity-60">
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.taskManager.toggleTaskStatus(${task.id})" class="flex-shrink-0 w-7 h-7 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                    <p class="text-gray-400 line-through">${task.name}</p>
+                </div>
+                <button onclick="window.taskManager.deleteTask(${task.id})" class="text-gray-500 hover:text-red-400 p-1">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        `).join('');
+            }
+
+            // Expose necessary functions
+            window.taskManager = {
+                renderTasksPage,
+                toggleTaskStatus,
+                deleteTask
+            };
+
+            // Integrate with main showPage function
+            const originalShowPage = window.showPage;
+            window.showPage = function (pageId) {
+                // This is a simple way to chain the functions. 
+                // If showPage is already modified by another script, this might need adjustment.
+                if (typeof originalShowPage === 'function') {
+                    originalShowPage(pageId);
+                }
+
+                if (pageId === 'tasks-page') {
+                    window.taskManager.renderTasksPage();
+                }
+            };
+        })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ===================================
+        // ====   CGPA PREDICTOR SCRIPT   ====
+        // ===================================
+
+        (() => {
+            // --- DOM Elements ---
+            const addSemesterBtn = document.getElementById('add-semester-btn');
+            const addSemesterModal = document.getElementById('add-semester-modal');
+            const semesterModalTitle = document.getElementById('semester-modal-title');
+            const addSemesterForm = document.getElementById('add-semester-form');
+            const cancelSemesterBtn = document.getElementById('cancel-semester-btn');
+            const deleteSemesterBtn = document.getElementById('delete-semester-btn');
+            const addCourseRowBtn = document.getElementById('add-course-row-btn');
+            const semestersContainer = document.getElementById('semesters-container');
+            const cgpaDisplay = document.getElementById('cgpa-display');
+            const semesterEditIdInput = document.getElementById('semester-edit-id');
+
+            // --- Data Functions ---
+            function getSemesters() { return JSON.parse(localStorage.getItem('uniHubSemesters')) || []; }
+            function saveSemesters(semesters) {
+                localStorage.setItem('uniHubSemesters', JSON.stringify(semesters));
+                renderGpaPage();
+            }
+
+            // --- Event Handlers ---
+            if (addSemesterBtn) {
+                addSemesterBtn.addEventListener('click', () => openSemesterModal());
+                cancelSemesterBtn.addEventListener('click', () => hideModal(addSemesterModal));
+                addSemesterModal.addEventListener('click', e => e.target === addSemesterModal && hideModal(addSemesterModal));
+                addCourseRowBtn.addEventListener('click', () => addCourseRow());
+                addSemesterForm.addEventListener('submit', handleSaveSemester);
+                deleteSemesterBtn.addEventListener('click', handleDeleteSemester);
+            }
+
+            function openSemesterModal(semesterId = null) {
+                addSemesterForm.reset();
+                semesterEditIdInput.value = semesterId || '';
+                document.getElementById('courses-container').innerHTML = '';
+
+                if (semesterId) {
+                    const semester = getSemesters().find(s => s.id === semesterId);
+                    if (!semester) return;
+                    semesterModalTitle.textContent = 'Edit Semester';
+                    document.getElementById('semester-name').value = semester.name;
+                    semester.courses.forEach(course => addCourseRow(course));
+                    deleteSemesterBtn.style.display = 'block';
+                } else {
+                    semesterModalTitle.textContent = 'Add New Semester';
+                    addCourseRow(); // Start with one empty course row
+                    deleteSemesterBtn.style.display = 'none';
+                }
+                showModal(addSemesterModal);
+            }
+
+            function addCourseRow(course = { name: '', credits: '', grade: 'O' }) {
+                const courseRow = document.createElement('div');
+                courseRow.className = 'grid grid-cols-3 gap-2 items-center course-row';
+                courseRow.innerHTML = `
+            <input type="text" placeholder="Course Name" value="${course.name}" class="course-name-input col-span-3 w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white text-sm" required>
+            <input type="number" step="0.5" placeholder="Credits" value="${course.credits}" class="course-credits-input w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white text-sm" required>
+            <select class="course-grade-select w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-white text-sm">
+                ${['O', 'A+', 'A', 'B+', 'B', 'C', 'D', 'E', 'F'].map(g => `<option value="${g}" ${g === course.grade ? 'selected' : ''}>${g}</option>`).join('')}
+            </select>
+            <button type="button" class="remove-course-btn text-gray-500 hover:text-red-400">&times;</button>
+        `;
+                document.getElementById('courses-container').appendChild(courseRow);
+                courseRow.querySelector('.remove-course-btn').addEventListener('click', () => courseRow.remove());
+            }
+
+            function handleSaveSemester(e) {
+                e.preventDefault();
+                const semesters = getSemesters();
+                const semesterId = semesterEditIdInput.value ? parseInt(semesterEditIdInput.value) : Date.now();
+
+                const courses = [];
+                document.querySelectorAll('.course-row').forEach(row => {
+                    const name = row.querySelector('.course-name-input').value;
+                    const credits = parseFloat(row.querySelector('.course-credits-input').value);
+                    const grade = row.querySelector('.course-grade-select').value;
+                    if (name && !isNaN(credits) && credits > 0) {
+                        courses.push({ name, credits, grade });
+                    }
+                });
+
+                const semesterData = {
+                    id: semesterId,
+                    name: document.getElementById('semester-name').value,
+                    courses: courses
+                };
+
+                if (semesterEditIdInput.value) {
+                    const index = semesters.findIndex(s => s.id === semesterId);
+                    semesters[index] = semesterData;
+                } else {
+                    semesters.push(semesterData);
+                }
+
+                saveSemesters(semesters);
+                hideModal(addSemesterModal);
+            }
+
+            function handleDeleteSemester() {
+                const semesterId = parseInt(semesterEditIdInput.value);
+                if (confirm("Are you sure you want to delete this entire semester?")) {
+                    let semesters = getSemesters().filter(s => s.id !== semesterId);
+                    saveSemesters(semesters);
+                    hideModal(addSemesterModal);
+                }
+            }
+
+            // --- Rendering Functions ---
+            function renderGpaPage() {
+                if (!document.getElementById('gpa-page')) return;
+
+                const semesters = getSemesters();
+                const gradePoints = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'D': 4, 'E': 0, 'F': 0 };
+
+                let totalQualityPoints = 0;
+                let totalCredits = 0;
+
+                semestersContainer.innerHTML = '';
+                semesters.forEach(semester => {
+                    const semTotalCredits = semester.courses.reduce((acc, c) => acc + c.credits, 0);
+                    const semQualityPoints = semester.courses.reduce((acc, c) => acc + (c.credits * (gradePoints[c.grade] || 0)), 0);
+                    const sgpa = semTotalCredits > 0 ? (semQualityPoints / semTotalCredits).toFixed(2) : 'N/A';
+
+                    totalCredits += semTotalCredits;
+                    totalQualityPoints += semQualityPoints;
+
+                    const coursesHTML = semester.courses.map(c => `<div class="text-sm flex justify-between text-gray-400"><p>${c.name}</p><p>Credits: ${c.credits} | Grade: ${c.grade}</p></div>`).join('');
+
+                    const semesterAccordion = document.createElement('div');
+                    semesterAccordion.className = 'bg-gray-800 rounded-xl transition-all duration-300';
+                    semesterAccordion.innerHTML = `
+                <button class="w-full flex justify-between items-center p-4 text-left" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')">
+                    <span class="font-bold text-white">${semester.name}</span>
+                    <div class="flex items-center space-x-4">
+                        <span class="font-semibold text-indigo-400">SGPA: ${sgpa}</span>
+                        <svg class="w-5 h-5 text-gray-400 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                </button>
+                <div class="px-4 pb-4 border-t border-gray-700 space-y-2 hidden">
+                    ${coursesHTML}
+                    <button class="text-sm text-blue-400 font-semibold mt-2" onclick="window.cgpaPredictor.openSemesterModal(${semester.id})">Edit Semester</button>
+                </div>
+            `;
+                    semestersContainer.appendChild(semesterAccordion);
+                });
+
+                const cgpa = totalCredits > 0 ? (totalQualityPoints / totalCredits).toFixed(2) : '0.00';
+                cgpaDisplay.textContent = cgpa;
+            }
+
+            // Expose necessary functions
+            window.cgpaPredictor = {
+                openSemesterModal,
+                renderGpaPage
+            };
+
+            // Integrate with main showPage function
+            const originalShowPage = window.showPage;
+            window.showPage = function (pageId) {
+                if (typeof originalShowPage === 'function') {
+                    originalShowPage(pageId);
+                }
+                if (pageId === 'gpa-page') {
+                    window.cgpaPredictor.renderGpaPage();
+                }
+            };
+
+        })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ===================================
+        // ====    CAMPUS EVENTS SCRIPT   ====
+        // ===================================
+
+        (() => {
+            // --- DOM Elements ---
+            const addEventBtn = document.getElementById('add-event-btn');
+            const addEventModal = document.getElementById('add-event-modal');
+            const addEventForm = document.getElementById('add-event-form');
+            const cancelEventBtn = document.getElementById('cancel-event-btn');
+            const eventsList = document.getElementById('events-list');
+            const emptyEventsView = document.getElementById('empty-events-view');
+            const eventModalTitle = document.getElementById('add-event-modal-title');
+            const eventEditId = document.getElementById('event-edit-id');
+
+            // --- Data Functions ---
+            function getEvents() { return JSON.parse(localStorage.getItem('uniHubEvents')) || []; }
+            function saveEvents(events) {
+                localStorage.setItem('uniHubEvents', JSON.stringify(events));
+                renderEventsPage();
+            }
+
+            // --- Event Handlers ---
+            if (addEventBtn) {
+                addEventBtn.addEventListener('click', () => openEventModal()); // Open for new event
+                cancelEventBtn.addEventListener('click', () => hideModal(addEventModal));
+                addEventModal.addEventListener('click', e => e.target === addEventModal && hideModal(addEventModal));
+                addEventForm.addEventListener('submit', handleSaveEvent);
+            }
+
+            function openEventModal(eventId = null) {
+                addEventForm.reset();
+                const modalContent = addEventModal.querySelector('.bg-gray-800');
+
+                if (eventId) {
+                    const event = getEvents().find(e => e.id === eventId);
+                    if (!event) return;
+                    eventModalTitle.textContent = 'Edit Event';
+                    eventEditId.value = event.id;
+                    document.getElementById('event-title').value = event.title;
+                    document.getElementById('event-date').value = event.date;
+                    document.getElementById('event-description').value = event.description;
+                } else {
+                    eventModalTitle.textContent = 'Add New Event';
+                    eventEditId.value = '';
+                }
+                showModal(addEventModal, modalContent);
+            }
+
+            function handleSaveEvent(e) {
+                e.preventDefault();
+                const events = getEvents();
+                const idToEdit = eventEditId.value;
+
+                const eventData = {
+                    title: document.getElementById('event-title').value,
+                    date: document.getElementById('event-date').value,
+                    description: document.getElementById('event-description').value,
+                };
+
+                if (idToEdit) {
+                    const index = events.findIndex(e => e.id == idToEdit);
+                    if (index !== -1) events[index] = { ...events[index], ...eventData };
+                } else {
+                    events.push({ ...eventData, id: Date.now() });
+                }
+
+                saveEvents(events);
+                hideModal(addEventModal, addEventModal.querySelector('.bg-gray-800'));
+            }
+
+            function deleteEvent(eventId) {
+                if (confirm("Are you sure you want to delete this event?")) {
+                    let events = getEvents();
+                    events = events.filter(e => e.id !== eventId);
+                    saveEvents(events);
+                }
+            }
+
+            // --- Rendering Logic ---
+            function renderEventsPage() {
+                if (!document.getElementById('events-page')) return;
+
+                const events = getEvents();
+                events.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+
+                if (events.length === 0) {
+                    emptyEventsView.style.display = 'flex';
+                    eventsList.style.display = 'none';
+                } else {
+                    emptyEventsView.style.display = 'none';
+                    eventsList.style.display = 'block';
+                    eventsList.innerHTML = events.map(event => {
+                        const eventDate = new Date(event.date.replace(/-/g, '/'));
+                        const isPast = eventDate < new Date().setHours(0, 0, 0, 0);
+                        return `
+                    <div class="bg-gray-800 p-4 rounded-xl border-l-4 border-indigo-500 ${isPast ? 'opacity-60' : ''}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-semibold text-indigo-400">${eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                <h4 class="font-bold text-white text-lg">${event.title}</h4>
+                            </div>
+                            <div class="flex-shrink-0 flex items-center space-x-2">
+                                <button onclick="window.events.openEventModal(${event.id})" class="text-gray-500 hover:text-blue-400 p-1">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                                </button>
+                                <button onclick="window.events.deleteEvent(${event.id})" class="text-gray-500 hover:text-red-400 p-1">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        ${event.description ? `<p class="text-gray-300 mt-2 text-sm">${event.description.replace(/\n/g, '<br>')}</p>` : ''}
+                    </div>
+                    `;
+                    }).join('');
+                }
+            }
+
+            // Expose necessary functions to the global scope so inline onclicks can find them
+            window.events = {
+                renderEventsPage,
+                openEventModal,
+                deleteEvent
+            };
+
+            // IMPORTANT: You need to modify your main showPage function to call this render function.
+            // Find your existing showPage function and add the if-statement like this:
             /*
             function showPage(pageId) {
-                // ... other code ...
-                if (pageId === 'assignments-page') renderAssignmentsPage();
+                // ... your existing code to hide and show pages
+                
+                // ADD THIS PART to your existing showPage function
+                if (pageId === 'events-page') {
+                    window.events.renderEventsPage();
+                }
             }
             */
 
+        })();
 
-
-
-
-            // ATTENDENCE PAGE
 
 
 
 
 
-        </script>
-    </body>
+    </script>
+</body>
 
-    </html>
+</html>
